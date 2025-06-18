@@ -5,6 +5,10 @@ import com.api.perpustakaan.dto.pustakawan.*;
 import com.api.perpustakaan.entity.User;
 import com.api.perpustakaan.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -111,5 +115,43 @@ public class UserManagementServiceImpl implements UserManagementService {
                 .nip(u.getNip())
                 .role(u.getRole())
                 .build();
+    }
+
+    @Override
+    public void uploadPustakawanBatch(MultipartFile file) {
+        try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
+            Sheet sheet = workbook.getSheetAt(0);
+
+            for (int i = 1; i <= sheet.getLastRowNum(); i++) { // start from 1 to skip header
+                Row row = sheet.getRow(i);
+                if (row == null)
+                    continue;
+
+                String name = row.getCell(0).getStringCellValue();
+                String username = row.getCell(1).getStringCellValue();
+                String password = row.getCell(2).getStringCellValue();
+                String email = row.getCell(3).getStringCellValue();
+                String nip = row.getCell(4).getStringCellValue();
+
+                if (userRepository.existsByUsername(username))
+                    continue; // skip duplicate
+
+                User pustakawan = User.builder()
+                        .name(name)
+                        .username(username)
+                        .password(passwordEncoder.encode(password))
+                        .email(email)
+                        .nip(nip)
+                        .role(RoleConstant.PUSTAKAWAN)
+                        .createdAt(LocalDateTime.now())
+                        .updatedAt(LocalDateTime.now())
+                        .build();
+
+                userRepository.save(pustakawan);
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to process uploaded file", e);
+        }
     }
 }

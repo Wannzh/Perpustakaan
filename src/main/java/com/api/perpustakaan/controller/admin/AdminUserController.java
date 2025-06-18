@@ -2,12 +2,20 @@ package com.api.perpustakaan.controller.admin;
 
 import com.api.perpustakaan.dto.pustakawan.*;
 import com.api.perpustakaan.service.user.UserManagementService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -49,4 +57,25 @@ public class AdminUserController {
         return ResponseEntity.ok(userManagementService.searchPustakawanByNip(nip));
     }
 
+    @Operation(
+        summary = "Upload pustakawan via file",
+        description = "Upload file Excel (.xlsx) atau CSV untuk menambahkan pustakawan secara massal"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Upload berhasil"),
+        @ApiResponse(responseCode = "400", description = "Upload gagal")
+    })
+    @PostMapping(value = "/pustakawan/upload", consumes = "multipart/form-data")
+    public ResponseEntity<String> uploadPustakawanBatch(
+        @Parameter(
+            description = "File Excel (.xlsx) atau CSV",
+            required = true,
+            content = @Content(mediaType = "application/octet-stream",
+                schema = @Schema(type = "string", format = "binary"))
+        )
+        @RequestParam("file") MultipartFile file
+    ) {
+        userManagementService.uploadPustakawanBatch(file);
+        return ResponseEntity.ok("Batch upload successful");
+    }
 }
