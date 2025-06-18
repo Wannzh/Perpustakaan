@@ -1,16 +1,16 @@
-package com.api.perpustakaan.dto.auth;
+package com.api.perpustakaan.dto.pustakawan;
 
 import com.api.perpustakaan.constant.RoleConstant;
+import lombok.Builder;
 import lombok.Data;
 
 @Data
-public class RegisterRequestDTO {
+@Builder
+public class PustakawanResponseDTO {
+    private Integer id;
     private String name;
     private String username;
-    private String password;
     private String email;
     private String nip;
-    private String nis;
-    private String userClass;
     private RoleConstant role;
 }

@@ -2,7 +2,6 @@ package com.api.perpustakaan.controller.auth;
 
 import com.api.perpustakaan.dto.auth.LoginRequestDTO;
 import com.api.perpustakaan.dto.auth.LoginResponseDTO;
-import com.api.perpustakaan.dto.auth.RegisterRequestDTO;
 import com.api.perpustakaan.service.auth.AuthService;
 
 import lombok.RequiredArgsConstructor;
@@ -21,8 +20,4 @@ public class AuthController {
         return ResponseEntity.ok(authService.login(request));
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<LoginResponseDTO> register(@RequestBody RegisterRequestDTO request) {
-        return ResponseEntity.ok(authService.register(request));
-    }
 }

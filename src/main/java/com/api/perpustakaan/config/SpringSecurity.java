@@ -47,6 +47,7 @@ public class SpringSecurity {
                 // KEPALA only
                 .requestMatchers(
                     "/api/users/**",
+                    "/api/admin/**",
                     "/api/books/**",
                     "/api/reports/**"
                 ).hasAuthority(RoleConstant.KEPALA.name())
