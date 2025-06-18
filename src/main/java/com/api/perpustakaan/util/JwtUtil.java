@@ -19,6 +19,7 @@ public class JwtUtil {
     private final String TOKEN_HEADER = "Authorization";
     private final String TOKEN_PREFIX = "Bearer ";
 
+    @SuppressWarnings("deprecation")
     private final JwtParser jwtParser = Jwts.parser().setSigningKey(SECRET_KEY);
 
     public String generateToken(String username, RoleConstant role) {

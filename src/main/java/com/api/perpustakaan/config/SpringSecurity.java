@@ -26,51 +26,57 @@ public class SpringSecurity {
         return new BCryptPasswordEncoder();
     }
 
+    @SuppressWarnings("removal")
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.cors();
         http
-            .csrf(csrf -> csrf.disable())
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .exceptionHandling(ex -> ex
-                .authenticationEntryPoint(new CustomUnAuthorizeException())
-                .accessDeniedHandler(new CustomAccessDeniedException()))
-            .authorizeHttpRequests(auth -> auth
-                // Public
-                .requestMatchers(
-                    "/api/auth/login",
-                    "/api/auth/register",
-                    "/swagger-ui/**",
-                    "/v3/api-docs/**"
-                ).permitAll()
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(new CustomUnAuthorizeException())
+                        .accessDeniedHandler(new CustomAccessDeniedException()))
+                .authorizeHttpRequests(auth -> auth
+                        // Public
+                        .requestMatchers(
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/swagger-resources/**",
+                                "/configuration/ui",
+                                "/configuration/security",
+                                "/webjars/**",
+                                "/api-docs/**",
+                                "/api-docs/swagger-config",
+                                "/api/auth/login")
+                        .permitAll()
 
-                // KEPALA only
-                .requestMatchers(
-                    "/api/users/**",
-                    "/api/admin/**",
-                    "/api/books/**",
-                    "/api/reports/**"
-                ).hasAuthority(RoleConstant.KEPALA.name())
+                        // KEPALA only
+                        .requestMatchers(
+                                "/api/users/**",
+                                "/api/admin/**",
+                                "/api/books/**",
+                                "/api/reports/**")
+                        .hasAuthority(RoleConstant.KEPALA.name())
 
-                // PUSTAKAWAN only
-                .requestMatchers(
-                    "/api/siswa/**",
-                    "/api/peminjaman/manual/**",
-                    "/api/pengembalian/manual/**"
-                ).hasAuthority(RoleConstant.PUSTAKAWAN.name())
+                        // PUSTAKAWAN only
+                        .requestMatchers(
+                                "/api/siswa/**",
+                                "/api/peminjaman/manual/**",
+                                "/api/pengembalian/manual/**")
+                        .hasAuthority(RoleConstant.PUSTAKAWAN.name())
 
-                // SISWA only
-                .requestMatchers(
-                    "/api/peminjaman/self/**",
-                    "/api/pengembalian/self/**",
-                    "/api/notifications/**"
-                ).hasAuthority(RoleConstant.SISWA.name())
+                        // SISWA only
+                        .requestMatchers(
+                                "/api/peminjaman/self/**",
+                                "/api/pengembalian/self/**",
+                                "/api/notifications/**")
+                        .hasAuthority(RoleConstant.SISWA.name())
 
-                // All authenticated
-                .anyRequest().authenticated()
-            )
-            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                        // All authenticated
+                        .anyRequest().authenticated())
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

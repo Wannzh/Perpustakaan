@@ -9,6 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -79,6 +80,36 @@ public class UserManagementServiceImpl implements UserManagementService {
         User pustakawan = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pustakawan not found"));
 
-        userRepository.delete(pustakawan); // hard delete
+        userRepository.delete(pustakawan);
+    }
+
+    @Override
+    public List<PustakawanResponseDTO> getAllPustakawan() {
+        return userRepository.findByRole(RoleConstant.PUSTAKAWAN)
+                .stream().map(this::mapToResponse).toList();
+    }
+
+    @Override
+    public List<PustakawanResponseDTO> searchPustakawanByName(String name) {
+        return userRepository.findByRoleAndNameContainingIgnoreCase(RoleConstant.PUSTAKAWAN, name)
+                .stream().map(this::mapToResponse).toList();
+    }
+
+    @Override
+    public List<PustakawanResponseDTO> searchPustakawanByNip(String nip) {
+        return userRepository.findByRoleAndNipContainingIgnoreCase(RoleConstant.PUSTAKAWAN, nip)
+                .stream().map(this::mapToResponse).toList();
+    }
+
+    // Reusable method
+    private PustakawanResponseDTO mapToResponse(User u) {
+        return PustakawanResponseDTO.builder()
+                .id(u.getId())
+                .name(u.getName())
+                .username(u.getUsername())
+                .email(u.getEmail())
+                .nip(u.getNip())
+                .role(u.getRole())
+                .build();
     }
 }
