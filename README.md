@@ -110,7 +110,7 @@ Sistem ini dikembangkan sebagai penyelesaian **Tugas Akhir** dan ditujukan untuk
 ```bash
 /Perpustakaan
 ├── backend/               # Java Spring Boot Project
-│   ├── src/main/java/com/perpustakaan
+│   ├── src/main/java/com/api/perpustakaan
 │   ├── src/main/resources
 │   └── pom.xml
 ├── frontend/              # React Project
