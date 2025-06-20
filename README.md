@@ -113,8 +113,8 @@ Sistem ini dikembangkan sebagai penyelesaian **Tugas Akhir** dan ditujukan untuk
 │ ├── src/main/resources
 │ └── pom.xml
 ├── frontend/ # React Project
-│ ├── src/
-│ └── package.json
+| ├── src/
+| └── package.json
 └── README.md
 
 
