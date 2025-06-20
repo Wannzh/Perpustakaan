@@ -107,15 +107,16 @@ Sistem ini dikembangkan sebagai penyelesaian **Tugas Akhir** dan ditujukan untuk
 ---
 
 ## 🗂️ Struktur Proyek
-/digital-library-system
-├── backend/ # Java Spring Boot Project
-│ ├── src/main/java/com/perpustakaan
-│ ├── src/main/resources
-│ └── pom.xml
-├── frontend/ # React Project
-| ├── src/
-| └── package.json
+/Perpustakaan
+├── backend/               # Java Spring Boot Project
+│   ├── src/main/java/com/perpustakaan
+│   ├── src/main/resources
+│   └── pom.xml
+├── frontend/              # React Project
+│   ├── src/
+│   └── package.json
 └── README.md
+
 
 
 ---
