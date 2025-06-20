@@ -1,10 +1,12 @@
-HELP.md
+# Ignore Spring Boot build folder
+/backend/target/
 target/
-.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
 
-### STS ###
+# Maven
+.mvn/
+*.log
+
+# STS
 .apt_generated
 .classpath
 .factorypath
@@ -13,21 +15,19 @@ target/
 .springBeans
 .sts4-cache
 
-### IntelliJ IDEA ###
+# IntelliJ
 .idea
 *.iws
 *.iml
 *.ipr
 
-### NetBeans ###
+# NetBeans
 /nbproject/private/
 /nbbuild/
 /dist/
 /nbdist/
 /.nb-gradle/
 build/
-!**/src/main/**/build/
-!**/src/test/**/build/
 
-### VS Code ###
+# VSCode
 .vscode/
