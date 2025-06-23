@@ -62,6 +62,7 @@ public class SpringSecurity {
 
                         // PUSTAKAWAN only
                         .requestMatchers(
+                                "/api/books/**",
                                 "/api/pustakawan/**",
                                 "/api/peminjaman/manual/**",
                                 "/api/pengembalian/manual/**")
