@@ -1,4 +1,4 @@
-package com.api.perpustakaan.controller.pustakawan;
+package com.api.perpustakaan.controller.siswa;
 
 import com.api.perpustakaan.dto.siswa.*;
 import com.api.perpustakaan.service.siswa.SiswaManagementService;
@@ -18,40 +18,40 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/pustakawan")
+@RequestMapping("/api/siswa")
 @RequiredArgsConstructor
 @Tag(name = "Pustakawan Kelola siswa", description = "Endpoints untuk mengelola siswa oleh pustakawan")
 public class SiswaController {
 
     private final SiswaManagementService siswaManagementService;
 
-    @PostMapping("/siswa/tambah")
+    @PostMapping("/tambah")
     public ResponseEntity<SiswaResponseDTO> create(@RequestBody SiswaRequestDTO request) {
         return ResponseEntity.ok(siswaManagementService.createSiswa(request));
     }
 
-    @PutMapping("/siswa/edit/{id}")
+    @PutMapping("/edit/{id}")
     public ResponseEntity<SiswaResponseDTO> update(@PathVariable Integer id, @RequestBody SiswaRequestDTO request) {
         return ResponseEntity.ok(siswaManagementService.updateSiswa(id, request));
     }
 
-    @DeleteMapping("/siswa/hapus/{id}")
+    @DeleteMapping("/hapus/{id}")
     public ResponseEntity<String> delete(@PathVariable Integer id) {
         siswaManagementService.deleteSiswa(id);
         return ResponseEntity.ok("Siswa deleted successfully");
     }
 
-    @GetMapping("/siswa/all")
+    @GetMapping("/all")
     public ResponseEntity<List<SiswaResponseDTO>> getAll() {
         return ResponseEntity.ok(siswaManagementService.getAllSiswa());
     }
 
-    @GetMapping("/siswa/search/nama")
+    @GetMapping("/search/nama")
     public ResponseEntity<List<SiswaResponseDTO>> searchByName(@RequestParam String name) {
         return ResponseEntity.ok(siswaManagementService.searchSiswaByName(name));
     }
 
-    @GetMapping("/siswa/search/nis")
+    @GetMapping("/search/nis")
     public ResponseEntity<List<SiswaResponseDTO>> searchByNis(@RequestParam String nis) {
         return ResponseEntity.ok(siswaManagementService.searchSiswaByNis(nis));
     }
@@ -64,7 +64,7 @@ public class SiswaController {
         @ApiResponse(responseCode = "200", description = "Upload berhasil"),
         @ApiResponse(responseCode = "400", description = "Upload gagal")
     })
-    @PostMapping(value = "/siswa/upload", consumes = "multipart/form-data")
+    @PostMapping(value = "/upload", consumes = "multipart/form-data")
     public ResponseEntity<String> uploadBatch(@Parameter(
             description = "File Excel (.xlsx) atau CSV",
             required = true,

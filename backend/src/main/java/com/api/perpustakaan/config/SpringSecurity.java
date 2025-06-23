@@ -57,13 +57,14 @@ public class SpringSecurity {
                                 "/api/users/**",
                                 "/api/admin/**",
                                 "/api/books/**",
+                                "/api/siswa/**",
                                 "/api/reports/**")
                         .hasAuthority(RoleConstant.KEPALA.name())
 
                         // PUSTAKAWAN only
                         .requestMatchers(
                                 "/api/books/**",
-                                "/api/pustakawan/**",
+                                "/api/siswa/**",
                                 "/api/peminjaman/manual/**",
                                 "/api/pengembalian/manual/**")
                         .hasAuthority(RoleConstant.PUSTAKAWAN.name())
