@@ -10,6 +10,8 @@ public class LoginResponseDTO {
     private String name;
     private String username;
     private String email;
+    private String nis;
+    private String userClass;
     private RoleConstant role;
     private String token;
 }

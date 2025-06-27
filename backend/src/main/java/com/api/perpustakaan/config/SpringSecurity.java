@@ -51,30 +51,34 @@ public class SpringSecurity {
                                 "/api-docs/swagger-config",
                                 "/api/auth/login")
                         .permitAll()
+                        
+                        .requestMatchers(
+                                "/api/siswa/**","/api/books/**"
+                        ).hasAnyAuthority(RoleConstant.KEPALA.name(), RoleConstant.PUSTAKAWAN.name())
 
                         // KEPALA only
                         .requestMatchers(
                                 "/api/users/**",
                                 "/api/admin/**",
-                                "/api/books/**",
-                                "/api/siswa/**",
-                                "/api/reports/**")
+                                "/api/reports/**",
+                                "/api/books/**")
                         .hasAuthority(RoleConstant.KEPALA.name())
 
                         // PUSTAKAWAN only
                         .requestMatchers(
-                                "/api/books/**",
-                                "/api/siswa/**",
                                 "/api/peminjaman/manual/**",
-                                "/api/pengembalian/manual/**")
+                                "/api/pengembalian/manual/**",
+                                "/api/books/**")
                         .hasAuthority(RoleConstant.PUSTAKAWAN.name())
 
                         // SISWA only
                         .requestMatchers(
                                 "/api/peminjaman/self/**",
+                                "/api/books/**",
                                 "/api/pengembalian/self/**",
                                 "/api/notifications/**")
                         .hasAuthority(RoleConstant.SISWA.name())
+
 
                         // All authenticated
                         .anyRequest().authenticated())
