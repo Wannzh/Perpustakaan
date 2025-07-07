@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
-import { Users } from "lucide-react";
+import { Users, Plus, Search, X, Save, Trash2, Edit, XCircle, CheckCircle, AlertCircle } from "lucide-react";
 
 // Tipe data sesuai dengan PustakawanResponseDTO di Java
 interface Pustakawan {
@@ -25,6 +25,11 @@ const PustakawanController: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [showAddForm, setShowAddForm] = useState<boolean>(false);
     const [showEditForm, setShowEditForm] = useState<boolean>(false);
+    const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
+    const [showNotification, setShowNotification] = useState<boolean>(false);
+    const [notificationMessage, setNotificationMessage] = useState<string>("");
+    const [isError, setIsError] = useState<boolean>(false);
+    const [deletePustakawanId, setDeletePustakawanId] = useState<number | null>(null);
     const [newPustakawan, setNewPustakawan] = useState<PustakawanRequestDTO>({
         name: "",
         username: "",
@@ -47,11 +52,22 @@ const PustakawanController: React.FC = () => {
         fetchAllPustakawan();
     }, []);
 
+    useEffect(() => {
+        if (showNotification && !isError) {
+            const timer = setTimeout(() => {
+                setShowNotification(false);
+                setNotificationMessage("");
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [showNotification, isError]);
+
     const fetchAllPustakawan = async () => {
         const token = Cookies.get("authToken");
-
         if (!token) {
-            console.error("Token tidak ditemukan di cookie");
+            setNotificationMessage("Token tidak ditemukan di cookie");
+            setIsError(true);
+            setShowNotification(true);
             setLoading(false);
             return;
         }
@@ -73,7 +89,9 @@ const PustakawanController: React.FC = () => {
             setPustakawanList(data);
             setLoading(false);
         } catch (err) {
-            console.error("Error:", err);
+            setNotificationMessage(err instanceof Error ? err.message : "Terjadi kesalahan saat mengambil data");
+            setIsError(true);
+            setShowNotification(true);
             setLoading(false);
         }
     };
@@ -81,9 +99,10 @@ const PustakawanController: React.FC = () => {
     const handleAddPustakawan = async (e: React.FormEvent) => {
         e.preventDefault();
         const token = Cookies.get("authToken");
-
         if (!token) {
-            console.error("Token tidak ditemukan di cookie");
+            setNotificationMessage("Token tidak ditemukan di cookie");
+            setIsError(true);
+            setShowNotification(true);
             return;
         }
 
@@ -111,18 +130,23 @@ const PustakawanController: React.FC = () => {
                 nip: "",
             });
             setShowAddForm(false);
-            console.log("Sukses menambah pustakawan:", addedPustakawan);
+            setNotificationMessage("Pustakawan berhasil ditambahkan");
+            setIsError(false);
+            setShowNotification(true);
         } catch (err) {
-            console.error("Error:", err);
+            setNotificationMessage(err instanceof Error ? err.message : "Terjadi kesalahan saat menambah pustakawan");
+            setIsError(true);
+            setShowNotification(true);
         }
     };
 
     const handleEditPustakawan = async (e: React.FormEvent) => {
         e.preventDefault();
         const token = Cookies.get("authToken");
-
         if (!token || editPustakawanId === null) {
-            console.error("Token tidak ditemukan atau ID pustakawan tidak valid");
+            setNotificationMessage("Token tidak ditemukan atau ID pustakawan tidak valid");
+            setIsError(true);
+            setShowNotification(true);
             return;
         }
 
@@ -153,22 +177,27 @@ const PustakawanController: React.FC = () => {
             });
             setEditPustakawanId(null);
             setShowEditForm(false);
-            console.log("Sukses mengedit pustakawan:", updatedPustakawan);
+            setNotificationMessage("Pustakawan berhasil diperbarui");
+            setIsError(false);
+            setShowNotification(true);
         } catch (err) {
-            console.error("Error:", err);
+            setNotificationMessage(err instanceof Error ? err.message : "Terjadi kesalahan saat mengedit pustakawan");
+            setIsError(true);
+            setShowNotification(true);
         }
     };
 
-    const handleDeletePustakawan = async (id: number) => {
+    const handleDeletePustakawan = async () => {
         const token = Cookies.get("authToken");
-
-        if (!token) {
-            console.error("Token tidak ditemukan di cookie");
+        if (!token || deletePustakawanId === null) {
+            setNotificationMessage("Token tidak ditemukan atau ID pustakawan tidak valid");
+            setIsError(true);
+            setShowNotification(true);
             return;
         }
 
         try {
-            const response = await fetch(`http://localhost:8080/api/admin/pustakawan/hapus/${id}`, {
+            const response = await fetch(`http://localhost:8080/api/admin/pustakawan/hapus/${deletePustakawanId}`, {
                 method: "DELETE",
                 headers: {
                     "Content-Type": "application/json",
@@ -181,10 +210,16 @@ const PustakawanController: React.FC = () => {
             }
 
             await response.text();
-            setPustakawanList((prev) => prev.filter((pustakawan) => pustakawan.id !== id));
-            console.log("Sukses menghapus pustakawan");
+            setPustakawanList((prev) => prev.filter((pustakawan) => pustakawan.id !== deletePustakawanId));
+            setShowDeleteModal(false);
+            setDeletePustakawanId(null);
+            setNotificationMessage("Pustakawan berhasil dihapus");
+            setIsError(false);
+            setShowNotification(true);
         } catch (err) {
-            console.error("Error:", err);
+            setNotificationMessage(err instanceof Error ? err.message : "Terjadi kesalahan saat menghapus pustakawan");
+            setIsError(true);
+            setShowNotification(true);
         }
     };
 
@@ -210,22 +245,25 @@ const PustakawanController: React.FC = () => {
         setShowEditForm(true);
     };
 
+    const openDeleteModal = (id: number) => {
+        setDeletePustakawanId(id);
+        setShowDeleteModal(true);
+    };
+
     const handleSearch = async () => {
-        // Note: Search endpoints are not provided in the backend code, so this is a placeholder
-        // If search endpoints like /pustakawan/search/nama or /pustakawan/search/nip exist, implement them here
         if (!searchQuery.trim()) {
             fetchAllPustakawan();
             return;
         }
 
         const token = Cookies.get("authToken");
-
         if (!token) {
-            console.error("Token tidak ditemukan di cookie");
+            setNotificationMessage("Token tidak ditemukan di cookie");
+            setIsError(true);
+            setShowNotification(true);
             return;
         }
 
-        // Placeholder: Assuming search endpoints exist similar to SiswaController
         const endpoint =
             searchType === "nama"
                 ? `http://localhost:8080/api/admin/pustakawan/search/nama?name=${encodeURIComponent(searchQuery)}`
@@ -249,7 +287,9 @@ const PustakawanController: React.FC = () => {
             setPustakawanList(data);
             setLoading(false);
         } catch (err) {
-            console.error("Error:", err);
+            setNotificationMessage(err instanceof Error ? err.message : "Terjadi kesalahan saat mencari data");
+            setIsError(true);
+            setShowNotification(true);
             setLoading(false);
         }
     };
@@ -260,237 +300,303 @@ const PustakawanController: React.FC = () => {
     };
 
     return (
-        <div className="p-6 gap-3 flex flex-col">
-            <div className="flex justify-between items-center mb-4">
-                <div className="flex items-center justify-center gap-1">
-                    <Users className="w-5 h-5" />
-                    <h1 className="text-2xl font-bold">Daftar Pustakawan</h1>
+        <div className="container mx-auto p-6 bg-gray-50 min-h-screen">
+            <div className="flex justify-between items-center mb-8">
+                <div className="flex items-center gap-3">
+                    <Users className="w-8 h-8 text-blue-600" />
+                    <h1 className="text-3xl font-bold text-gray-800">Manajemen Pustakawan</h1>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                     <select
                         value={searchType}
                         onChange={(e) => setSearchType(e.target.value as "nama" | "nip")}
-                        className="p-2 border rounded"
+                        className="p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
-                        <option value="nama">Cari berdasarkan Nama</option>
-                        <option value="nip">Cari berdasarkan NIP</option>
+                        <option value="nama">Nama</option>
+                        <option value="nip">NIP</option>
                     </select>
-                    <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder={`Masukkan ${searchType === "nama" ? "nama" : "NIP"} untuk mencari`}
-                        className="p-2 border rounded"
-                        onKeyDown={(e) => {
-                            if (e.key === "Enter") handleSearch();
-                        }}
-                    />
+                    <div className="relative">
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder={`Cari berdasarkan ${searchType}`}
+                            className="p-2 pl-10 border rounded-lg focus:ring-2 focus:ring-blue-500 verwfocus:border-blue-500"
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") handleSearch();
+                            }}
+                        />
+                        <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                    </div>
                     <button
                         onClick={handleSearch}
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition duration-200"
                     >
-                        Cari
+                        <Search className="w-4 h-4" /> Cari
                     </button>
                     <button
                         onClick={handleClearSearch}
-                        className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
+                        className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition duration-200"
                     >
-                        Clear
+                        <XCircle className="w-4 h-4" /> Clear
                     </button>
                     <button
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition duration-200"
                         onClick={() => setShowAddForm(!showAddForm)}
                     >
-                        {showAddForm ? "Cancel" : "Add Pustakawan +"}
+                        <Plus className="w-4 h-4" /> {showAddForm ? "Tutup" : "Tambah Pustakawan"}
                     </button>
                 </div>
             </div>
 
             {showAddForm && (
-                <form onSubmit={handleAddPustakawan} className="bg-gray-50 p-4 rounded-lg shadow mb-6">
-                    <h2 className="text-lg font-semibold mb-4">Tambah Pustakawan Baru</h2>
-                    <div className="grid grid-cols-2 gap-4">
+                <div className="bg-white p-6 rounded-lg shadow-lg mb-8">
+                    <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+                        <Plus className="w-5 h-5 text-blue-600" /> Tambah Pustakawan Baru
+                    </h2>
+                    <form onSubmit={handleAddPustakawan} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label className="block text-sm font-medium">Nama</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Nama</label>
                             <input
                                 type="text"
                                 name="name"
                                 value={newPustakawan.name}
                                 onChange={handleInputChange}
-                                className="w-full p-2 border rounded"
+                                className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                 required
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium">Username</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
                             <input
                                 type="text"
                                 name="username"
                                 value={newPustakawan.username}
                                 onChange={handleInputChange}
-                                className="w-full p-2 border rounded"
+                                className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                 required
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium">Password</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
                             <input
                                 type="password"
                                 name="password"
                                 value={newPustakawan.password}
                                 onChange={handleInputChange}
-                                className="w-full p-2 border rounded"
+                                className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                 required
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium">Email</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                             <input
                                 type="email"
                                 name="email"
                                 value={newPustakawan.email}
                                 onChange={handleInputChange}
-                                className="w-full p-2 border rounded"
+                                className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                 required
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium">NIP</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">NIP</label>
                             <input
                                 type="text"
                                 name="nip"
                                 value={newPustakawan.nip}
                                 onChange={handleInputChange}
-                                className="w-full p-2 border rounded"
+                                className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                 required
                             />
                         </div>
-                    </div>
-                    <button
-                        type="submit"
-                        className="mt-4 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
-                    >
-                        Submit
-                    </button>
-                </form>
+                        <div className="col-span-1 md:col-span-2 flex gap-3">
+                            <button
+                                type="submit"
+                                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition duration-200"
+                            >
+                                <Save className="w-4 h-4" /> Simpan
+                            </button>
+                            <button
+                                type="button"
+                                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition duration-200"
+                                onClick={() => setShowAddForm(false)}
+                            >
+                                <X className="w-4 h-4" /> Batal
+                            </button>
+                        </div>
+                    </form>
+                </div>
             )}
 
             {showEditForm && (
-                <form onSubmit={handleEditPustakawan} className="bg-gray-50 p-4 rounded-lg shadow mb-6">
-                    <h2 className="text-lg font-semibold mb-4">Edit Pustakawan</h2>
-                    <div className="grid grid-cols-2 gap-4">
+                <div className="bg-white p-6 rounded-lg shadow-lg mb-8">
+                    <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+                        <Edit className="w-5 h-5 text-amber-600" /> Edit Pustakawan
+                    </h2>
+                    <form onSubmit={handleEditPustakawan} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label className="block text-sm font-medium">Nama</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Nama</label>
                             <input
                                 type="text"
                                 name="name"
                                 value={editPustakawan.name}
                                 onChange={handleEditInputChange}
-                                className="w-full p-2 border rounded"
+                                className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                                 required
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium">Username</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
                             <input
                                 type="text"
                                 name="username"
                                 value={editPustakawan.username}
                                 onChange={handleEditInputChange}
-                                className="w-full p-2 border rounded"
+                                className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                                 required
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium">Password (Kosongkan jika tidak diubah)</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Password (Kosongkan jika tidak diubah)</label>
                             <input
                                 type="password"
                                 name="password"
                                 value={editPustakawan.password}
                                 onChange={handleEditInputChange}
-                                className="w-full p-2 border rounded"
+                                className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                                 placeholder="Masukkan password baru jika ingin mengubah"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium">Email</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                             <input
                                 type="email"
                                 name="email"
                                 value={editPustakawan.email}
                                 onChange={handleEditInputChange}
-                                className="w-full p-2 border rounded"
+                                className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                                 required
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium">NIP</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">NIP</label>
                             <input
                                 type="text"
                                 name="nip"
                                 value={editPustakawan.nip}
                                 onChange={handleEditInputChange}
-                                className="w-full p-2 border rounded"
+                                className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                                 required
                             />
                         </div>
+                        <div className="col-span-1 md:col-span-2 flex gap-3">
+                            <button
+                                type="submit"
+                                className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition duration-200"
+                            >
+                                <Save className="w-4 h-4" /> Update
+                            </button>
+                            <button
+                                type="button"
+                                className= "bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition duration-200"
+                                onClick={() => {
+                                    setShowEditForm(false);
+                                    setEditPustakawanId(null);
+                                }}
+                            >
+                                <X className="w-4 h-4" /> Batal
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            )}
+
+            {showDeleteModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                    <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+                        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                            <Trash2 className="w-5 h-5 text-red-600" /> Konfirmasi Hapus
+                        </h2>
+                        <p className="mb-6">Apakah Anda yakin ingin menghapus pustakawan ini?</p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={handleDeletePustakawan}
+                                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition duration-200"
+                            >
+                                <Trash2 className="w-4 h-4" /> Hapus
+                            </button>
+                            <button
+                                onClick={() => setShowDeleteModal(false)}
+                                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition duration-200"
+                            >
+                                <X className="w-4 h-4" /> Batal
+                            </button>
+                        </div>
                     </div>
-                    <div className="mt-4 flex gap-2">
+                </div>
+            )}
+
+            {showNotification && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                    <div className={`bg-white p-6 rounded-lg shadow-lg max-w-md w-full ${isError ? 'border-l-4 border-red-600' : 'border-l-4 border-green-600'}`}>
+                        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                            {isError ? (
+                                <AlertCircle className="w-5 h-5 text-red-600" />
+                            ) : (
+                                <CheckCircle className="w-5 h-5 text-green-600" />
+                            )}
+                            {isError ? "Error" : "Sukses"}
+                        </h2>
+                        <p className="mb-6">{notificationMessage}</p>
                         <button
-                            type="submit"
-                            className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded"
+                            onClick={() => setShowNotification(false)}
+                            className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition duration-200"
                         >
-                            Update
-                        </button>
-                        <button
-                            type="button"
-                            className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
-                            onClick={() => {
-                                setShowEditForm(false);
-                                setEditPustakawanId(null);
-                            }}
-                        >
-                            Cancel
+                            <X className="w-4 h-4" /> Tutup
                         </button>
                     </div>
-                </form>
+                </div>
             )}
 
             {loading ? (
-                <p className="text-center text-gray-500">Loading data pustakawan...</p>
+                <div className="text-center text-gray-500 py-8">
+                    <div className="animate-spin inline-block w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full"></div>
+                    <p className="mt-2">Memuat data pustakawan...</p>
+                </div>
             ) : (
-                <div className="overflow-x-auto">
-                    <table className="min-w-full table-auto border border-gray-300">
+                <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+                    <table className="min-w-full table-auto">
                         <thead className="bg-gray-100">
                             <tr>
-                                <th className="border px-4 py-2">ID</th>
-                                <th className="border px-4 py-2">Nama</th>
-                                <th className="border px-4 py-2">Username</th>
-                                <th className="border px-4 py-2">Email</th>
-                                <th className="border px-4 py-2">NIP</th>
-                                <th className="border px-4 py-2">Action</th>
+                                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">No</th>
+                                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Nama</th>
+                                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Username</th>
+                                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Email</th>
+                                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">NIP</th>
+                                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {pustakawanList.map((pustakawan) => (
-                                <tr key={pustakawan.id} className="text-center">
-                                    <td className="border px-4 py-2">{pustakawan.id}</td>
-                                    <td className="border px-4 py-2">{pustakawan.name}</td>
-                                    <td className="border px-4 py-2">{pustakawan.username}</td>
-                                    <td className="border px-4 py-2">{pustakawan.email}</td>
-                                    <td className="border px-4 py-2">{pustakawan.nip}</td>
-                                    <td className="border px-4 py-2">
+                            {pustakawanList.map((pustakawan, index) => (
+                                <tr key={pustakawan.id} className={`${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} hover:bg-gray-100 transition duration-150`}>
+                                    <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4">{index + 1}</td>
+                                    <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4">{pustakawan.name}</td>
+                                    <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4">{pustakawan.username}</td>
+                                    <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4">{pustakawan.email}</td>
+                                    <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4">{pustakawan.nip}</td>
+                                    <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 flex gap-2">
                                         <button
-                                            className="bg-red-500 text-white p-0.5 rounded-md mr-2"
-                                            onClick={() => handleDeletePustakawan(pustakawan.id)}
-                                        >
-                                            Delete
-                                        </button>
-                                        <button
-                                            className="bg-amber-500 text-white p-0.5 rounded-md"
+                                            className="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded-lg flex items-center gap-1 transition duration-200"
                                             onClick={() => openEditForm(pustakawan)}
                                         >
-                                            Edit
+                                            <Edit className="w-4 h-4" /> 
+                                        </button>
+                                        <button
+                                            className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-lg flex items-center gap-1 transition duration-200"
+                                            onClick={() => openDeleteModal(pustakawan.id)}
+                                        >
+                                            <Trash2 className="w-4 h-4" /> 
                                         </button>
                                     </td>
                                 </tr>

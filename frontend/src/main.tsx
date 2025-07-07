@@ -22,6 +22,7 @@ import BooksControllerAdmin from "./pages/admin/BooksControllerAdmin";
 import BooksControllerPustakawan from "./pages/perpustakawan/BooksControllerPustakawan";
 import BooksList from "./pages/siswa/BooksList";
 import ProfileSiswa from "./pages/siswa/ProfileSiswa";
+import SiswaControllerAdmin from "./pages/admin/SiswaControllerAdmin";
 
 const router = createBrowserRouter([
   {
@@ -48,7 +49,7 @@ const router = createBrowserRouter([
           },
           {
             path: "siswa-management",
-            element: <SiswaControllerPustkawan />
+            element: <SiswaControllerAdmin />
           },
           {
             path: "books-management",
