@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
-import { Book, Search, Plus, X, Save, Trash2, Edit, AlertTriangle } from "lucide-react";
+import { Book, Plus, Search, X, Save, Trash2, Edit, XCircle, CheckCircle, AlertCircle, Info, Building, Calendar, Tags, Layers, BookOpen } from "lucide-react";
 
 interface Books {
     id: number;
@@ -20,11 +20,24 @@ interface BooksRequestDTO {
 }
 
 const BooksControllerAdmin: React.FC = () => {
-    const [showAddForm, setShowAddForm] = useState<boolean>(false);
-    const [showEditForm, setShowEditForm] = useState<boolean>(false);
     const [bookList, setBookList] = useState<Books[]>([]);
     const [filteredBooks, setFilteredBooks] = useState<Books[]>([]);
-    const [searchTerm, setSearchTerm] = useState<string>("");
+    const [loading, setLoading] = useState<boolean>(true);
+    const [showAddForm, setShowAddForm] = useState<boolean>(false);
+    const [showEditForm, setShowEditForm] = useState<boolean>(false);
+    const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
+    const [showNotification, setShowNotification] = useState<boolean>(false);
+    const [notificationMessage, setNotificationMessage] = useState<string>("");
+    const [isError, setIsError] = useState<boolean>(false);
+    const [deleteBookId, setDeleteBookId] = useState<number | null>(null);
+    const [openInfoModal, setOpenInfoModal] = useState<Books | null>(null);
+    const [newBook, setNewBook] = useState<BooksRequestDTO>({
+        judul: "",
+        penerbit: "",
+        tahunTerbit: new Date().getFullYear(),
+        kategori: "",
+        jumlahEksemplar: 1,
+    });
     const [editBook, setEditBook] = useState<Books>({
         id: 0,
         judul: "",
@@ -33,37 +46,29 @@ const BooksControllerAdmin: React.FC = () => {
         kategori: "",
         jumlahEksemplar: 1,
     });
-    const [newBook, setNewBook] = useState<BooksRequestDTO>({
-        judul: "",
-        penerbit: "",
-        tahunTerbit: new Date().getFullYear(),
-        kategori: "",
-        jumlahEksemplar: 1,
-    });
-    const [showConfirm, setShowConfirm] = useState<{
-        show: boolean;
-        type: "add" | "edit" | "delete" | null;
-        id?: number;
-    }>({ show: false, type: null });
-    const [loading, setLoading] = useState<boolean>(true);
+    const [searchTerm, setSearchTerm] = useState<string>("");
+    const [searchType, setSearchType] = useState<"judul" | "kategori">("judul");
 
     useEffect(() => {
         fetchBookList();
     }, []);
 
     useEffect(() => {
-        const filtered = bookList.filter(
-            (book) =>
-                book.judul.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                book.kategori.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-        setFilteredBooks(filtered);
-    }, [searchTerm, bookList]);
+        if (showNotification && !isError) {
+            const timer = setTimeout(() => {
+                setShowNotification(false);
+                setNotificationMessage("");
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [showNotification, isError]);
 
     const fetchBookList = async () => {
         const token = Cookies.get("authToken");
         if (!token) {
-            console.error("Token tidak ditemukan di cookie");
+            setNotificationMessage("Token tidak ditemukan di cookie");
+            setIsError(true);
+            setShowNotification(true);
             setLoading(false);
             return;
         }
@@ -86,21 +91,74 @@ const BooksControllerAdmin: React.FC = () => {
             setFilteredBooks(data);
             setLoading(false);
         } catch (err) {
-            console.error("Error:", err);
+            setNotificationMessage(err instanceof Error ? err.message : "Terjadi kesalahan saat mengambil data");
+            setIsError(true);
+            setShowNotification(true);
             setLoading(false);
         }
     };
 
-    const handleAddBook = async () => {
+    const handleSearch = async () => {
+        if (!searchTerm.trim()) {
+            setFilteredBooks(bookList);
+            return;
+        }
+
         const token = Cookies.get("authToken");
         if (!token) {
-            console.error("Token tidak ditemukan di cookie");
-            setShowConfirm({ show: false, type: null });
+            setNotificationMessage("Token tidak ditemukan di cookie");
+            setIsError(true);
+            setShowNotification(true);
+            return;
+        }
+
+        const endpoint =
+            searchType === "judul"
+                ? `http://localhost:8080/api/books/search/judul?judul=${encodeURIComponent(searchTerm)}`
+                : `http://localhost:8080/api/books/search/kategori?kategori=${encodeURIComponent(searchTerm)}`;
+
+        try {
+            setLoading(true);
+            const response = await fetch(endpoint, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Gagal mencari data buku - Status ${response.status}`);
+            }
+
+            const data: Books[] = await response.json();
+            setFilteredBooks(data);
+            setLoading(false);
+        } catch (err) {
+            setNotificationMessage(err instanceof Error ? err.message : "Terjadi kesalahan saat mencari data");
+            setIsError(true);
+            setShowNotification(true);
+            setLoading(false);
+        }
+    };
+
+    const handleClearSearch = () => {
+        setSearchTerm("");
+        setFilteredBooks(bookList);
+    };
+
+    const handleAddBook = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const token = Cookies.get("authToken");
+        if (!token) {
+            setNotificationMessage("Token tidak ditemukan di cookie");
+            setIsError(true);
+            setShowNotification(true);
             return;
         }
 
         try {
-            const response = await fetch("http://localhost:8080/api/books", {
+            const response = await fetch("http://localhost:8080/api/books/all", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -123,47 +181,23 @@ const BooksControllerAdmin: React.FC = () => {
                 jumlahEksemplar: 1,
             });
             setShowAddForm(false);
-            setShowConfirm({ show: false, type: null });
+            setNotificationMessage("Buku berhasil ditambahkan");
+            setIsError(false);
+            setShowNotification(true);
         } catch (err) {
-            console.error("Error:", err);
-            setShowConfirm({ show: false, type: null });
+            setNotificationMessage(err instanceof Error ? err.message : "Terjadi kesalahan saat menambah buku");
+            setIsError(true);
+            setShowNotification(true);
         }
     };
 
-    const handleDeleteBook = async (id: number) => {
+    const handleEditBook = async (e: React.FormEvent) => {
+        e.preventDefault();
         const token = Cookies.get("authToken");
-        if (!token) {
-            console.error("Token tidak ditemukan di cookie");
-            setShowConfirm({ show: false, type: null });
-            return;
-        }
-
-        try {
-            const response = await fetch(`http://localhost:8080/api/books/${id}`, {
-                method: "DELETE",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-
-            if (!response.ok) {
-                throw new Error(`Gagal menghapus buku - Status ${response.status}`);
-            }
-
-            fetchBookList();
-            setShowConfirm({ show: false, type: null });
-        } catch (err) {
-            console.error("Error:", err);
-            setShowConfirm({ show: false, type: null });
-        }
-    };
-
-    const handleEditBook = async () => {
-        const token = Cookies.get("authToken");
-        if (!token) {
-            console.error("Token tidak ditemukan di cookie");
-            setShowConfirm({ show: false, type: null });
+        if (!token || editBook.id === 0) {
+            setNotificationMessage("Token tidak ditemukan atau ID buku tidak valid");
+            setIsError(true);
+            setShowNotification(true);
             return;
         }
 
@@ -181,8 +215,8 @@ const BooksControllerAdmin: React.FC = () => {
                 throw new Error(`Gagal mengedit buku - Status ${response.status}`);
             }
 
+            await response.json();
             fetchBookList();
-            setShowEditForm(false);
             setEditBook({
                 id: 0,
                 judul: "",
@@ -191,10 +225,50 @@ const BooksControllerAdmin: React.FC = () => {
                 kategori: "",
                 jumlahEksemplar: 1,
             });
-            setShowConfirm({ show: false, type: null });
+            setShowEditForm(false);
+            setNotificationMessage("Buku berhasil diperbarui");
+            setIsError(false);
+            setShowNotification(true);
         } catch (err) {
-            console.error("Error:", err);
-            setShowConfirm({ show: false, type: null });
+            setNotificationMessage(err instanceof Error ? err.message : "Terjadi kesalahan saat mengedit buku");
+            setIsError(true);
+            setShowNotification(true);
+        }
+    };
+
+    const handleDeleteBook = async () => {
+        const token = Cookies.get("authToken");
+        if (!token || deleteBookId === null) {
+            setNotificationMessage("Token tidak ditemukan atau ID buku tidak valid");
+            setIsError(true);
+            setShowNotification(true);
+            return;
+        }
+
+        try {
+            const response = await fetch(`http://localhost:8080/api/books/${deleteBookId}`, {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Gagal menghapus buku - Status ${response.status}`);
+            }
+
+            await response.text();
+            fetchBookList();
+            setShowDeleteModal(false);
+            setDeleteBookId(null);
+            setNotificationMessage("Buku berhasil dihapus");
+            setIsError(false);
+            setShowNotification(true);
+        } catch (err) {
+            setNotificationMessage(err instanceof Error ? err.message : "Terjadi kesalahan saat menghapus buku");
+            setIsError(true);
+            setShowNotification(true);
         }
     };
 
@@ -204,310 +278,420 @@ const BooksControllerAdmin: React.FC = () => {
         setShowAddForm(false);
     };
 
-    const confirmAction = async () => {
-        if (showConfirm.type === "add") {
-            await handleAddBook();
-        } else if (showConfirm.type === "edit") {
-            await handleEditBook();
-        } else if (showConfirm.type === "delete" && showConfirm.id !== undefined) {
-            await handleDeleteBook(showConfirm.id);
-        }
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setNewBook((prev) => ({ ...prev, [name]: name === "tahunTerbit" || name === "jumlahEksemplar" ? parseInt(value) || 0 : value }));
+    };
+
+    const handleEditInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setEditBook((prev) => ({ ...prev, [name]: name === "tahunTerbit" || name === "jumlahEksemplar" ? parseInt(value) || 0 : value }));
     };
 
     return (
-        <div className="min-h-screen bg-gray-100 p-6">
-            <div className="max-w-7xl mx-auto">
-                <div className="flex justify-between items-center mb-6">
-                    <div className="flex items-center gap-2">
-                        <Book className="w-6 h-6 text-indigo-600" />
-                        <h2 className="text-3xl font-bold text-gray-800">Manajemen Buku</h2>
+        <div className="container mx-auto p-6 bg-gradient-to-br from-gray-100 to-blue-50 min-h-screen">
+            <div className="flex justify-between items-center mb-8">
+                <div className="flex items-center gap-3">
+                    <Book className="w-8 h-8 text-indigo-600" />
+                    <h1 className="text-3xl font-extrabold text-gray-900">Manajemen Buku</h1>
+                </div>
+                <div className="flex items-center gap-3">
+                    <select
+                        value={searchType}
+                        onChange={(e) => setSearchType(e.target.value as "judul" | "kategori")}
+                        className="p-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                    >
+                        <option value="judul">Judul</option>
+                        <option value="kategori">Kategori</option>
+                    </select>
+                    <div className="relative">
+                        <input
+                            type="text"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            placeholder={`Cari berdasarkan ${searchType}`}
+                            className="p-2 pl-10 bg-white border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition w-64"
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") handleSearch();
+                            }}
+                        />
+                        <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
                     </div>
-                    <div className="flex items-center gap-3">
-                        <div className="relative">
-                            <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                    <button
+                        onClick={handleSearch}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
+                    >
+                        <Search className="w-4 h-4" /> Cari
+                    </button>
+                    <button
+                        onClick={handleClearSearch}
+                        className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
+                    >
+                        <XCircle className="w-4 h-4" /> Clear
+                    </button>
+                    <button
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
+                        onClick={() => {
+                            setShowAddForm(!showAddForm);
+                            setShowEditForm(false);
+                        }}
+                    >
+                        <Plus className="w-4 h-4" /> {showAddForm ? "Tutup" : "Tambah Buku"}
+                    </button>
+                </div>
+            </div>
+
+            {showAddForm && (
+                <div className="bg-white p-6 rounded-xl shadow-2xl mb-8 transform transition-all duration-300">
+                    <h2 className="text-xl font-semibold mb-6 flex items-center gap-2 text-indigo-700">
+                        <Plus className="w-5 h-5" /> Tambah Buku Baru
+                    </h2>
+                    <form onSubmit={handleAddBook} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Judul Buku</label>
                             <input
                                 type="text"
-                                placeholder="Cari berdasarkan judul atau kategori..."
-                                className="pl-10 p-2 border rounded-lg bg-white shadow-sm focus:ring-2 focus:ring-indigo-500 w-64"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
+                                name="judul"
+                                value={newBook.judul}
+                                onChange={handleInputChange}
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition"
+                                required
                             />
                         </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Penerbit</label>
+                            <input
+                                type="text"
+                                name="penerbit"
+                                value={newBook.penerbit}
+                                onChange={handleInputChange}
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition"
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Tahun Terbit</label>
+                            <input
+                                type="number"
+                                name="tahunTerbit"
+                                value={newBook.tahunTerbit}
+                                onChange={handleInputChange}
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition"
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
+                            <input
+                                type="text"
+                                name="kategori"
+                                value={newBook.kategori}
+                                onChange={handleInputChange}
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition"
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Jumlah Eksemplar</label>
+                            <input
+                                type="number"
+                                name="jumlahEksemplar"
+                                value={newBook.jumlahEksemplar}
+                                onChange={handleInputChange}
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition"
+                                min="1"
+                                required
+                            />
+                        </div>
+                        <div className="col-span-1 md:col-span-2 flex gap-3">
+                            <button
+                                type="submit"
+                                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
+                            >
+                                <Save className="w-4 h-4" /> Simpan
+                            </button>
+                            <button
+                                type="button"
+                                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
+                                onClick={() => setShowAddForm(false)}
+                            >
+                                <X className="w-4 h-4" /> Batal
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            )}
+
+            {showEditForm && (
+                <div className="bg-white p-6 rounded-xl shadow-2xl mb-8 transform transition-all duration-300">
+                    <h2 className="text-xl font-semibold mb-6 flex items-center gap-2 text-amber-700">
+                        <Edit className="w-5 h-5" /> Edit Buku
+                    </h2>
+                    <form onSubmit={handleEditBook} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Judul Buku</label>
+                            <input
+                                type="text"
+                                name="judul"
+                                value={editBook.judul}
+                                onChange={handleEditInputChange}
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm transition"
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Penerbit</label>
+                            <input
+                                type="text"
+                                name="penerbit"
+                                value={editBook.penerbit}
+                                onChange={handleEditInputChange}
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm transition"
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Tahun Terbit</label>
+                            <input
+                                type="number"
+                                name="tahunTerbit"
+                                value={editBook.tahunTerbit}
+                                onChange={handleEditInputChange}
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm transition"
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
+                            <input
+                                type="text"
+                                name="kategori"
+                                value={editBook.kategori}
+                                onChange={handleEditInputChange}
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm transition"
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Jumlah Eksemplar</label>
+                            <input
+                                type="number"
+                                name="jumlahEksemplar"
+                                value={editBook.jumlahEksemplar}
+                                onChange={handleEditInputChange}
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm transition"
+                                min="1"
+                                required
+                            />
+                        </div>
+                        <div className="col-span-1 md:col-span-2 flex gap-3">
+                            <button
+                                type="submit"
+                                className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
+                            >
+                                <Save className="w-4 h-4" /> Update
+                            </button>
+                            <button
+                                type="button"
+                                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
+                                onClick={() => setShowEditForm(false)}
+                            >
+                                <X className="w-4 h-4" /> Batal
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            )}
+
+            {showDeleteModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center">
+                    <div className="bg-white p-6 rounded-xl shadow-2xl max-w-md w-full transform transition-all duration-300 scale-100">
+                        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2 text-red-700">
+                            <Trash2 className="w-5 h-5" /> Konfirmasi Hapus
+                        </h2>
+                        <p className="mb-6 text-gray-600">Apakah Anda yakin ingin menghapus buku ini?</p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={handleDeleteBook}
+                                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
+                            >
+                                <Trash2 className="w-4 h-4" /> Hapus
+                            </button>
+                            <button
+                                onClick={() => setShowDeleteModal(false)}
+                                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
+                            >
+                                <X className="w-4 h-4" /> Batal
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showNotification && (
+                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center">
+                    <div className={`bg-white p-6 rounded-xl shadow-2xl max-w-md w-full transform transition-all duration-300 ${isError ? 'border-l-4 border-red-600' : 'border-l-4 border-green-600'}`}>
+                        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                            {isError ? (
+                                <AlertCircle className="w-5 h-5 text-red-600" />
+                            ) : (
+                                <CheckCircle className="w-5 h-5 text-green-600" />
+                            )}
+                            {isError ? "Error" : "Sukses"}
+                        </h2>
+                        <p className="mb-6 text-gray-600">{notificationMessage}</p>
                         <button
-                            className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition flex items-center gap-2"
-                            onClick={() => {
-                                setShowAddForm(!showAddForm);
-                                setShowEditForm(false);
-                            }}
+                            onClick={() => setShowNotification(false)}
+                            className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
                         >
-                            <Plus className="w-5 h-5" />
-                            {showAddForm ? "Batal" : "Tambah Buku"}
+                            <X className="w-4 h-4" /> Tutup
                         </button>
                     </div>
                 </div>
+            )}
 
-                {showAddForm && (
-                    <div className="bg-white p-6 rounded-lg shadow-lg mb-6">
-                        <h3 className="text-xl font-semibold text-gray-800 mb-4">Tambah Buku Baru</h3>
-                        <form
-                            onSubmit={(e) => {
-                                e.preventDefault();
-                                setShowConfirm({ show: true, type: "add" });
-                            }}
-                            className="grid grid-cols-1 md:grid-cols-2 gap-4"
-                        >
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Judul Buku</label>
-                                <input
-                                    type="text"
-                                    placeholder="Judul Buku"
-                                    className="mt-1 w-full p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
-                                    value={newBook.judul}
-                                    onChange={(e) => setNewBook({ ...newBook, judul: e.target.value })}
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Penerbit</label>
-                                <input
-                                    type="text"
-                                    placeholder="Penerbit"
-                                    className="mt-1 w-full p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
-                                    value={newBook.penerbit}
-                                    onChange={(e) => setNewBook({ ...newBook, penerbit: e.target.value })}
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Tahun Terbit</label>
-                                <input
-                                    type="number"
-                                    placeholder="Tahun Terbit"
-                                    className="mt-1 w-full p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
-                                    value={newBook.tahunTerbit}
-                                    onChange={(e) => setNewBook({ ...newBook, tahunTerbit: parseInt(e.target.value) })}
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Kategori</label>
-                                <input
-                                    type="text"
-                                    placeholder="Kategori"
-                                    className="mt-1 w-full p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
-                                    value={newBook.kategori}
-                                    onChange={(e) => setNewBook({ ...newBook, kategori: e.target.value })}
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Jumlah Eksemplar</label>
-                                <input
-                                    type="number"
-                                    placeholder="Jumlah Eksemplar"
-                                    className="mt-1 w-full p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
-                                    value={newBook.jumlahEksemplar}
-                                    onChange={(e) => setNewBook({ ...newBook, jumlahEksemplar: parseInt(e.target.value) })}
-                                    min="1"
-                                    required
-                                />
-                            </div>
-                            <div className="md:col-span-2 flex gap-2">
-                                <button
-                                    type="submit"
-                                    className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition flex items-center gap-2"
-                                >
-                                    <Save className="w-5 h-5" />
-                                    Simpan
-                                </button>
-                                <button
-                                    type="button"
-                                    className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition flex items-center gap-2"
-                                    onClick={() => setShowAddForm(false)}
-                                >
-                                    <X className="w-5 h-5" />
-                                    Batal
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                )}
+            {openInfoModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+                    <div className="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full transform transition-all duration-300 scale-100 border border-gray-200">
+                        <h2 className="text-xl font-bold mb-6 flex items-center gap-3 text-blue-700">
+                            <Info className="w-6 h-6" /> Detail Buku
+                        </h2>
 
-                {showEditForm && (
-                    <div className="bg-white p-6 rounded-lg shadow-lg mb-6">
-                        <h3 className="text-xl font-semibold text-gray-800 mb-4">Edit Buku</h3>
-                        <form
-                            onSubmit={(e) => {
-                                e.preventDefault();
-                                setShowConfirm({ show: true, type: "edit" });
-                            }}
-                            className="grid grid-cols-1 md:grid-cols-2 gap-4"
-                        >
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Judul Buku</label>
-                                <input
-                                    type="text"
-                                    placeholder="Judul Buku"
-                                    className="mt-1 w-full p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
-                                    value={editBook.judul}
-                                    onChange={(e) => setEditBook({ ...editBook, judul: e.target.value })}
-                                    required
-                                />
+                        <div className="space-y-5">
+                            <div className="flex items-start gap-3">
+                                <BookOpen className="w-5 h-5 text-gray-500 mt-1" />
+                                <div>
+                                    <label className="block text-sm text-gray-500 mb-1">Judul Buku</label>
+                                    <p className="text-gray-900 font-semibold">{openInfoModal.judul}</p>
+                                </div>
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Penerbit</label>
-                                <input
-                                    type="text"
-                                    placeholder="Penerbit"
-                                    className="mt-1 w-full p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
-                                    value={editBook.penerbit}
-                                    onChange={(e) => setEditBook({ ...editBook, penerbit: e.target.value })}
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Tahun Terbit</label>
-                                <input
-                                    type="number"
-                                    placeholder="Tahun Terbit"
-                                    className="mt-1 w-full p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
-                                    value={editBook.tahunTerbit}
-                                    onChange={(e) => setEditBook({ ...editBook, tahunTerbit: parseInt(e.target.value) })}
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Kategori</label>
-                                <input
-                                    type="text"
-                                    placeholder="Kategori"
-                                    className="mt-1 w-full p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
-                                    value={editBook.kategori}
-                                    onChange={(e) => setEditBook({ ...editBook, kategori: e.target.value })}
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Jumlah Eksemplar</label>
-                                <input
-                                    type="number"
-                                    placeholder="Jumlah Eksemplar"
-                                    className="mt-1 w-full p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
-                                    value={editBook.jumlahEksemplar}
-                                    onChange={(e) => setEditBook({ ...editBook, jumlahEksemplar: parseInt(e.target.value) })}
-                                    min="1"
-                                    required
-                                />
-                            </div>
-                            <div className="md:col-span-2 flex gap-2">
-                                <button
-                                    type="submit"
-                                    className="bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700 transition flex items-center gap-2"
-                                >
-                                    <Save className="w-5 h-5" />
-                                    Update
-                                </button>
-                                <button
-                                    type="button"
-                                    className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition flex items-center gap-2"
-                                    onClick={() => setShowEditForm(false)}
-                                >
-                                    <X className="w-5 h-5" />
-                                    Batal
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                )}
 
-                {showConfirm.show && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
-                            <div className="flex items-center gap-2 mb-4">
-                                <AlertTriangle className="w-6 h-6 text-yellow-500" />
-                                <h2 className="text-lg font-semibold text-gray-800">
-                                    Konfirmasi {showConfirm.type === "add" ? "Tambah" : showConfirm.type === "edit" ? "Edit" : "Hapus"} Buku
-                                </h2>
+                            <div className="flex items-start gap-3">
+                                <Building className="w-5 h-5 text-gray-500 mt-1" />
+                                <div>
+                                    <label className="block text-sm text-gray-500 mb-1">Penerbit</label>
+                                    <p className="text-gray-900 font-semibold">{openInfoModal.penerbit}</p>
+                                </div>
                             </div>
-                            <p className="text-gray-600 mb-6">
-                                Apakah Anda yakin ingin {showConfirm.type === "add" ? "menambahkan" : showConfirm.type === "edit" ? "mernyakan" : "menghapus"} buku ini?
-                            </p>
-                            <div className="flex justify-end gap-2">
-                                <button
-                                    className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition flex items-center gap-2"
-                                    onClick={() => setShowConfirm({ show: false, type: null })}
-                                >
-                                    <X className="w-5 h-5" />
-                                    Batal
-                                </button>
-                                <button
-                                    className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition flex items-center gap-2"
-                                    onClick={confirmAction}
-                                >
-                                    <Save className="w-5 h-5" />
-                                    Ya, {showConfirm.type === "add" ? "Tambah" : showConfirm.type === "edit" ? "Update" : "Hapus"}
-                                </button>
+
+                            <div className="flex items-start gap-3">
+                                <Calendar className="w-5 h-5 text-gray-500 mt-1" />
+                                <div>
+                                    <label className="block text-sm text-gray-500 mb-1">Tahun Terbit</label>
+                                    <p className="text-gray-900 font-semibold">{openInfoModal.tahunTerbit}</p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-start gap-3">
+                                <Tags className="w-5 h-5 text-gray-500 mt-1" />
+                                <div>
+                                    <label className="block text-sm text-gray-500 mb-1">Kategori</label>
+                                    <p className="text-gray-900 font-semibold">{openInfoModal.kategori}</p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-start gap-3">
+                                <Layers className="w-5 h-5 text-gray-500 mt-1" />
+                                <div>
+                                    <label className="block text-sm text-gray-500 mb-1">Jumlah Eksemplar</label>
+                                    <p className="text-gray-900 font-semibold">{openInfoModal.jumlahEksemplar}</p>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                )}
 
-                {loading ? (
-                    <div className="flex justify-center items-center h-64">
-                        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
+                        <div className="mt-8 flex justify-end">
+                            <button
+                                onClick={() => setOpenInfoModal(null)}
+                                className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl flex items-center gap-2 shadow-md transition-all hover:scale-105 active:scale-95"
+                            >
+                                <X className="w-4 h-4" /> Tutup
+                            </button>
+                        </div>
                     </div>
-                ) : (
-                    <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
+                </div>
+            )}
+
+
+            {loading ? (
+                <div className="text-center text-gray-500 py-8">
+                    <div className="animate-spin inline-block w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full"></div>
+                    <p className="mt-2 font-medium">Memuat data buku...</p>
+                </div>
+            ) : (
+                <div className="bg-white rounded-xl shadow-2xl overflow-hidden cursor-pointer">
+                    <table className="min-w-full table-auto">
+                        <thead className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white">
+                            <tr>
+                                <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">No</th>
+                                <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Judul</th>
+                                <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Penerbit</th>
+                                <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Tahun</th>
+                                <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Kategori</th>
+                                <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Jumlah</th>
+                                <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {filteredBooks.length === 0 ? (
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Judul</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Penerbit</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tahun</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kategori</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jumlah</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                                    <td colSpan={7} className="px-6 py-4 text-center text-sm text-gray-500">
+                                        Tidak ada data buku ditemukan
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                                {filteredBooks.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={7} className="px-6 py-4 text-center text-sm text-gray-500">
-                                            Tidak ada data buku ditemukan
+                            ) : (
+                                filteredBooks.map((book, index) => (
+                                    <tr
+                                        key={book.id}
+                                        className={`${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} hover:bg-indigo-50 transition-all duration-200 transform hover:shadow-md`}
+                                    >
+                                        <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
+                                            {index + 1}
+                                        </td>
+                                        <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
+                                            {book.judul}
+                                        </td>
+                                        <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
+                                            {book.penerbit}
+                                        </td>
+                                        <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
+                                            {book.tahunTerbit}
+                                        </td>
+                                        <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
+                                            {book.kategori}
+                                        </td>
+                                        <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
+                                            {book.jumlahEksemplar}
+                                        </td>
+                                        <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 flex gap-2">
+                                            <button
+                                                className="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1 rounded-lg flex items-center gap-1 shadow-sm transition-transform transform hover:scale-105 cursor-pointer"
+                                                onClick={() => handleShowEditForm(book)}
+                                            >
+                                                <Edit className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg flex items-center gap-1 shadow-sm transition-transform transform hover:scale-105 cursor-pointer"
+                                                onClick={() => {
+                                                    setDeleteBookId(book.id);
+                                                    setShowDeleteModal(true);
+                                                }}
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg flex items-center gap-1 shadow-sm transition-transform transform hover:scale-105 cursor-pointer"
+                                                onClick={() => setOpenInfoModal(book)}
+                                            >
+                                                <Info className="w-4 h-4" />
+                                            </button>
                                         </td>
                                     </tr>
-                                ) : (
-                                    filteredBooks.map((book, index) => (
-                                        <tr key={book.id} className="hover:bg-gray-50">
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{index + 1}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{book.judul}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{book.penerbit}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{book.tahunTerbit}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{book.kategori}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{book.jumlahEksemplar}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 flex gap-2">
-                                                <button
-                                                    className="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded-lg flex items-center gap-1 transition duration-200"
-                                                    onClick={() => handleShowEditForm(book)}
-                                                >
-                                                    <Edit className="w-5 h-5" />
-                                                </button>
-                                                <button
-                                                    className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-lg flex items-center gap-1 transition duration-200"
-                                                    onClick={() => setShowConfirm({ show: true, type: "delete", id: book.id })}
-                                                >
-                                                    <Trash2 className="w-5 h-5" />
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
-            </div>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            )}
         </div>
     );
 };

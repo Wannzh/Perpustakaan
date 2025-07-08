@@ -1,18 +1,12 @@
 import React, { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import {
-  LayoutDashboard,
-  Users,
-  Book,
-  LogOut,
-  Menu,
-  X,
-} from "lucide-react";
+import { LayoutDashboard, Users, Book, LogOut, Menu, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import Cookies from "js-cookie";
 
 const SidebarPerpustakawan: React.FC = () => {
   const navigate = useNavigate();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleLogout = () => {
     Cookies.remove("authToken");
@@ -29,50 +23,58 @@ const SidebarPerpustakawan: React.FC = () => {
     <>
       {/* Mobile Menu Button */}
       <button
-        onClick={() => setSidebarOpen(true)}
-        className="md:hidden fixed top-4 left-4 z-50 bg-gray-900 text-white p-2 rounded-md shadow-md"
+        onClick={() => setIsOpen(true)}
+        className="md:hidden fixed top-4 left-4 z-50 bg-gradient-to-r from-gray-800 to-gray-900 text-white p-2 rounded-lg shadow-lg hover:scale-105 transition-transform"
       >
         <Menu className="w-6 h-6" />
       </button>
 
-      {/* Overlay */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black bg-opacity-40 md:hidden animate-fade-in"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+      {/* Mobile Overlay */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.5 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black z-40 md:hidden"
+            onClick={() => setIsOpen(false)}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Sidebar */}
-      <aside
-        className={`fixed top-0 left-0 h-full w-64 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white p-6 shadow-2xl z-50 transform transition-transform duration-300 ease-in-out
-          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0 md:static`}
+      <motion.aside
+        initial={{ x: -300 }}
+        animate={{ x: isOpen || window.innerWidth >= 768 ? 0 : -300 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        className="fixed top-0 left-0 h-full w-64 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white flex flex-col p-6 shadow-2xl md:relative z-50"
       >
-        {/* Title & Close (mobile) */}
-        <div className="flex justify-between items-center mb-8 md:justify-center">
-          <h2 className="text-2xl font-bold tracking-wide animate-fade-in-down">📚 Perpustakawan</h2>
-          <button
-            className="md:hidden text-gray-300 hover:text-white transition"
-            onClick={() => setSidebarOpen(false)}
+        {/* Header */}
+        <div className="flex items-center justify-between md:justify-center mb-10">
+          <h2
+            onClick={() => navigate("/")}
+            className="text-2xl font-extrabold tracking-wide cursor-pointer bg-gradient-to-r from-yellow-400 to-green-500 text-transparent bg-clip-text animate-fade-in-down"
           >
+            Perpustakawan
+          </h2>
+          <button onClick={() => setIsOpen(false)} className="md:hidden text-white">
             <X className="w-6 h-6" />
           </button>
         </div>
 
         {/* Navigation */}
-        <nav className="flex flex-col gap-3">
-          {navItems.map(({ to, label, icon: Icon }, index) => (
+        <nav className="flex flex-col gap-4 flex-grow">
+          {navItems.map(({ to, label, icon: Icon }, i) => (
             <NavLink
-              key={index}
+              key={i}
               to={to}
-              onClick={() => setSidebarOpen(false)}
+              end={to === ""}  // ⬅️ Hanya untuk dashboard agar active saat path persis "/"
+              onClick={() => setIsOpen(false)}
               className={({ isActive }) =>
-                `group flex items-center gap-4 px-5 py-3 rounded-lg font-medium transition-all duration-300
-                ${
-                  isActive
-                    ? "bg-gray-700 text-white scale-[1.02] shadow-md"
-                    : "hover:bg-gray-700 hover:text-white"
-                } hover:scale-[1.02]`
+                `group flex items-center gap-4 px-5 py-3 rounded-lg font-semibold text-sm transition-all duration-300 shadow hover:scale-[1.05] ${isActive
+                  ? "bg-gradient-to-r from-green-600 to-emerald-600 text-white"
+                  : "bg-gray-800 hover:bg-gradient-to-r hover:from-green-600 hover:to-emerald-600 hover:text-white"
+                }`
               }
             >
               <Icon className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
@@ -81,15 +83,16 @@ const SidebarPerpustakawan: React.FC = () => {
           ))}
         </nav>
 
+
         {/* Logout */}
         <button
           onClick={handleLogout}
-          className="mt-8 w-full flex items-center justify-center gap-3 px-5 py-3 rounded-lg bg-red-600 hover:bg-red-700 transition-all duration-300 shadow-md hover:scale-105"
+          className="mt-8 flex items-center justify-center gap-3 px-5 py-3 rounded-lg bg-gradient-to-r from-red-600 to-pink-600 text-white font-semibold shadow-lg hover:scale-105 transition-all duration-300"
         >
-          <LogOut className="w-5 h-5" />
-          <span className="font-semibold">Logout</span>
+          <LogOut className="w-5 h-5 text-white" />
+          Logout
         </button>
-      </aside>
+      </motion.aside>
     </>
   );
 };

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
-import { Users } from "lucide-react";
+import { Users, Plus, Search, X, Save, Trash2, Edit, XCircle, CheckCircle, AlertCircle, Info, BadgeInfo, BookOpen, ShieldCheck, UserCircle, Mail, User } from "lucide-react";
 
 // Tipe data sesuai dengan SiswaResponseDTO di Java
 interface Siswa {
@@ -24,11 +24,17 @@ interface SiswaRequestDTO {
     role: string;
 }
 
-const SiswaControllerPustkawan = () => {
+const SiswaControllerPustkawan: React.FC = () => {
     const [siswaList, setSiswaList] = useState<Siswa[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [showAddForm, setShowAddForm] = useState<boolean>(false);
     const [showEditForm, setShowEditForm] = useState<boolean>(false);
+    const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
+    const [showNotification, setShowNotification] = useState<boolean>(false);
+    const [notificationMessage, setNotificationMessage] = useState<string>("");
+    const [isError, setIsError] = useState<boolean>(false);
+    const [deleteSiswaId, setDeleteSiswaId] = useState<number | null>(null);
+    const [openInfoModal, setOpenInfoModal] = useState<Siswa | null>(null);
     const [newSiswa, setNewSiswa] = useState<SiswaRequestDTO>({
         name: "",
         username: "",
@@ -55,11 +61,22 @@ const SiswaControllerPustkawan = () => {
         fetchAllSiswa();
     }, []);
 
+    useEffect(() => {
+        if (showNotification && !isError) {
+            const timer = setTimeout(() => {
+                setShowNotification(false);
+                setNotificationMessage("");
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [showNotification, isError]);
+
     const fetchAllSiswa = async () => {
         const token = Cookies.get("authToken");
-
         if (!token) {
-            console.error("Token tidak ditemukan di cookie");
+            setNotificationMessage("Token tidak ditemukan di cookie");
+            setIsError(true);
+            setShowNotification(true);
             setLoading(false);
             return;
         }
@@ -81,92 +98,20 @@ const SiswaControllerPustkawan = () => {
             setSiswaList(data);
             setLoading(false);
         } catch (err) {
-            console.error("Error:", err);
+            setNotificationMessage(err instanceof Error ? err.message : "Terjadi kesalahan saat mengambil data");
+            setIsError(true);
+            setShowNotification(true);
             setLoading(false);
-        }
-    };
-
-    const handleSearch = async () => {
-        if (!searchQuery.trim()) {
-            fetchAllSiswa();
-            return;
-        }
-
-        const token = Cookies.get("authToken");
-
-        if (!token) {
-            console.error("Token tidak ditemukan di cookie");
-            return;
-        }
-
-        const endpoint =
-            searchType === "nama"
-                ? `http://localhost:8080/api/siswa/search/nama?name=${encodeURIComponent(searchQuery)}`
-                : `http://localhost:8080/api/siswa/search/nis?nis=${encodeURIComponent(searchQuery)}`;
-
-        try {
-            setLoading(true);
-            const response = await fetch(endpoint, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-
-            if (!response.ok) {
-                throw new Error(`Gagal mencari data siswa - Status ${response.status}`);
-            }
-
-            const data: Siswa[] = await response.json();
-            setSiswaList(data);
-            setLoading(false);
-        } catch (err) {
-            console.error("Error:", err);
-            setLoading(false);
-        }
-    };
-
-    const handleClearSearch = () => {
-        setSearchQuery("");
-        fetchAllSiswa();
-    };
-
-    const handleDeleteSiswa = async (id: number) => {
-        const token = Cookies.get("authToken");
-
-        if (!token) {
-            console.error("Token tidak ditemukan di cookie");
-            return;
-        }
-
-        try {
-            const response = await fetch(`http://localhost:8080/api/siswa/hapus/${id}`, {
-                method: "DELETE",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-
-            if (!response.ok) {
-                throw new Error(`Gagal menghapus data siswa - Status ${response.status}`);
-            }
-
-            await response.text();
-            setSiswaList((prev) => prev.filter((siswa) => siswa.id !== id));
-            console.log("Sukses menghapus siswa");
-        } catch (err) {
-            console.error("Error:", err);
         }
     };
 
     const handleAddSiswa = async (e: React.FormEvent) => {
         e.preventDefault();
         const token = Cookies.get("authToken");
-
         if (!token) {
-            console.error("Token tidak ditemukan di cookie");
+            setNotificationMessage("Token tidak ditemukan di cookie");
+            setIsError(true);
+            setShowNotification(true);
             return;
         }
 
@@ -196,18 +141,23 @@ const SiswaControllerPustkawan = () => {
                 role: "SISWA",
             });
             setShowAddForm(false);
-            console.log("Sukses menambah siswa:", addedSiswa);
+            setNotificationMessage("Siswa berhasil ditambahkan");
+            setIsError(false);
+            setShowNotification(true);
         } catch (err) {
-            console.error("Error:", err);
+            setNotificationMessage(err instanceof Error ? err.message : "Terjadi kesalahan saat menambah siswa");
+            setIsError(true);
+            setShowNotification(true);
         }
     };
 
     const handleEditSiswa = async (e: React.FormEvent) => {
         e.preventDefault();
         const token = Cookies.get("authToken");
-
         if (!token || editSiswaId === null) {
-            console.error("Token tidak ditemukan atau ID siswa tidak valid");
+            setNotificationMessage("Token tidak ditemukan atau ID siswa tidak valid");
+            setIsError(true);
+            setShowNotification(true);
             return;
         }
 
@@ -240,9 +190,49 @@ const SiswaControllerPustkawan = () => {
             });
             setEditSiswaId(null);
             setShowEditForm(false);
-            console.log("Sukses mengedit siswa:", updatedSiswa);
+            setNotificationMessage("Siswa berhasil diperbarui");
+            setIsError(false);
+            setShowNotification(true);
         } catch (err) {
-            console.error("Error:", err);
+            setNotificationMessage(err instanceof Error ? err.message : "Terjadi kesalahan saat mengedit siswa");
+            setIsError(true);
+            setShowNotification(true);
+        }
+    };
+
+    const handleDeleteSiswa = async () => {
+        const token = Cookies.get("authToken");
+        if (!token || deleteSiswaId === null) {
+            setNotificationMessage("Token tidak ditemukan atau ID siswa tidak valid");
+            setIsError(true);
+            setShowNotification(true);
+            return;
+        }
+
+        try {
+            const response = await fetch(`http://localhost:8080/api/siswa/hapus/${deleteSiswaId}`, {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Gagal menghapus siswa - Status ${response.status}`);
+            }
+
+            await response.text();
+            setSiswaList((prev) => prev.filter((siswa) => siswa.id !== deleteSiswaId));
+            setShowDeleteModal(false);
+            setDeleteSiswaId(null);
+            setNotificationMessage("Siswa berhasil dihapus");
+            setIsError(false);
+            setShowNotification(true);
+        } catch (err) {
+            setNotificationMessage(err instanceof Error ? err.message : "Terjadi kesalahan saat menghapus siswa");
+            setIsError(true);
+            setShowNotification(true);
         }
     };
 
@@ -270,290 +260,503 @@ const SiswaControllerPustkawan = () => {
         setShowEditForm(true);
     };
 
+    const openDeleteModal = (id: number) => {
+        setDeleteSiswaId(id);
+        setShowDeleteModal(true);
+    };
+
+    const handleSearch = async () => {
+        if (!searchQuery.trim()) {
+            fetchAllSiswa();
+            return;
+        }
+
+        const token = Cookies.get("authToken");
+        if (!token) {
+            setNotificationMessage("Token tidak ditemukan di cookie");
+            setIsError(true);
+            setShowNotification(true);
+            return;
+        }
+
+        const endpoint =
+            searchType === "nama"
+                ? `http://localhost:8080/api/siswa/search/nama?name=${encodeURIComponent(searchQuery)}`
+                : `http://localhost:8080/api/siswa/search/nis?nis=${encodeURIComponent(searchQuery)}`;
+
+        try {
+            setLoading(true);
+            const response = await fetch(endpoint, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Gagal mencari data siswa - Status ${response.status}`);
+            }
+
+            const data: Siswa[] = await response.json();
+            setSiswaList(data);
+            setLoading(false);
+        } catch (err) {
+            setNotificationMessage(err instanceof Error ? err.message : "Terjadi kesalahan saat mencari data");
+            setIsError(true);
+            setShowNotification(true);
+            setLoading(false);
+        }
+    };
+
+    const handleClearSearch = () => {
+        setSearchQuery("");
+        fetchAllSiswa();
+    };
+
     return (
-        <div className="p-6 gap-3 flex flex-col">
-            <div className="flex justify-between items-center mb-4">
-                <div className="flex items-center justify-center gap-1">
-                    <Users className="w-5 h-5" />
-                    <h1 className="text-2xl font-bold">Daftar Siswa</h1>
+        <div className="container mx-auto p-6 bg-gradient-to-br from-gray-100 to-blue-50 min-h-screen">
+            <div className="flex justify-between items-center mb-8">
+                <div className="flex items-center gap-3">
+                    <Users className="w-8 h-8 text-indigo-600" />
+                    <h1 className="text-3xl font-extrabold text-gray-900">Manajemen Siswa</h1>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                     <select
                         value={searchType}
                         onChange={(e) => setSearchType(e.target.value as "nama" | "nis")}
-                        className="p-2 border rounded"
+                        className="p-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
                     >
-                        <option value="nama">Cari berdasarkan Nama</option>
-                        <option value="nis">Cari berdasarkan NIS</option>
+                        <option value="nama">Nama</option>
+                        <option value="nis">NIS</option>
                     </select>
-                    <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder={`Masukkan ${searchType === "nama" ? "nama" : "NIS"} untuk mencari`}
-                        className="p-2 border rounded"
-                        onKeyDown={(e) => {
-                            if (e.key === "Enter") handleSearch();
-                        }}
-                    />
+                    <div className="relative">
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder={`Cari berdasarkan ${searchType}`}
+                            className="p-2 pl-10 bg-white border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") handleSearch();
+                            }}
+                        />
+                        <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                    </div>
                     <button
                         onClick={handleSearch}
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
                     >
-                        Cari
+                        <Search className="w-4 h-4" /> Cari
                     </button>
                     <button
                         onClick={handleClearSearch}
-                        className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
+                        className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
                     >
-                        Clear
+                        <XCircle className="w-4 h-4" /> Clear
                     </button>
                     <button
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
                         onClick={() => setShowAddForm(!showAddForm)}
                     >
-                        {showAddForm ? "Cancel" : "Add Siswa +"}
+                        <Plus className="w-4 h-4" /> {showAddForm ? "Tutup" : "Tambah Siswa"}
                     </button>
                 </div>
             </div>
 
             {showAddForm && (
-                <form onSubmit={handleAddSiswa} className="bg-gray-50 p-4 rounded-lg shadow mb-6">
-                    <h2 className="text-lg font-semibold mb-4">Tambah Siswa Baru</h2>
-                    <div className="grid grid-cols-2 gap-4">
+                <div className="bg-white p-6 rounded-xl shadow-2xl mb-8 transform transition-all duration-300">
+                    <h2 className="text-xl font-semibold mb-6 flex items-center gap-2 text-indigo-700">
+                        <Plus className="w-5 h-5" /> Tambah Siswa Baru
+                    </h2>
+                    <form onSubmit={handleAddSiswa} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label className="block text-sm font-medium">Nama</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Nama</label>
                             <input
                                 type="text"
                                 name="name"
                                 value={newSiswa.name}
                                 onChange={handleInputChange}
-                                className="w-full p-2 border rounded"
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition"
                                 required
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium">Username</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
                             <input
                                 type="text"
                                 name="username"
                                 value={newSiswa.username}
                                 onChange={handleInputChange}
-                                className="w-full p-2 border rounded"
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition"
                                 required
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium">Password</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
                             <input
                                 type="password"
                                 name="password"
                                 value={newSiswa.password}
                                 onChange={handleInputChange}
-                                className="w-full p-2 border rounded"
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition"
                                 required
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium">Email</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                             <input
                                 type="email"
                                 name="email"
                                 value={newSiswa.email}
                                 onChange={handleInputChange}
-                                className="w-full p-2 border rounded"
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition"
                                 required
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium">NIS</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">NIS</label>
                             <input
                                 type="text"
                                 name="nis"
                                 value={newSiswa.nis}
                                 onChange={handleInputChange}
-                                className="w-full p-2 border rounded"
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition"
                                 required
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium">Kelas</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Kelas</label>
                             <input
                                 type="text"
                                 name="userClass"
                                 value={newSiswa.userClass}
                                 onChange={handleInputChange}
-                                className="w-full p-2 border rounded"
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition"
                                 required
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium">Role</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
                             <select
                                 name="role"
                                 value={newSiswa.role}
                                 onChange={handleInputChange}
-                                className="w-full p-2 border rounded"
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition"
                                 required
                             >
                                 <option value="SISWA">SISWA</option>
                                 <option value="ADMIN">ADMIN</option>
                             </select>
                         </div>
-                    </div>
-                    <button
-                        type="submit"
-                        className="mt-4 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
-                    >
-                        Submit
-                    </button>
-                </form>
+                        <div className="col-span-1 md:col-span-2 flex gap-3">
+                            <button
+                                type="submit"
+                                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
+                            >
+                                <Save className="w-4 h-4" /> Simpan
+                            </button>
+                            <button
+                                type="button"
+                                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
+                                onClick={() => setShowAddForm(false)}
+                            >
+                                <X className="w-4 h-4" /> Batal
+                            </button>
+                        </div>
+                    </form>
+                </div>
             )}
 
             {showEditForm && (
-                <form onSubmit={handleEditSiswa} className="bg-gray-50 p-4 rounded-lg shadow mb-6">
-                    <h2 className="text-lg font-semibold mb-4">Edit Siswa</h2>
-                    <div className="grid grid-cols-2 gap-4">
+                <div className="bg-white p-6 rounded-xl shadow-2xl mb-8 transform transition-all duration-300">
+                    <h2 className="text-xl font-semibold mb-6 flex items-center gap-2 text-amber-700">
+                        <Edit className="w-5 h-5" /> Edit Siswa
+                    </h2>
+                    <form onSubmit={handleEditSiswa} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label className="block text-sm font-medium">Nama</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Nama</label>
                             <input
                                 type="text"
                                 name="name"
                                 value={editSiswa.name}
                                 onChange={handleEditInputChange}
-                                className="w-full p-2 border rounded"
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm transition"
                                 required
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium">Username</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
                             <input
                                 type="text"
                                 name="username"
                                 value={editSiswa.username}
                                 onChange={handleEditInputChange}
-                                className="w-full p-2 border rounded"
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm transition"
                                 required
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium">Password (Kosongkan jika tidak diubah)</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Password (Kosongkan jika tidak diubah)</label>
                             <input
                                 type="password"
                                 name="password"
                                 value={editSiswa.password}
                                 onChange={handleEditInputChange}
-                                className="w-full p-2 border rounded"
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm transition"
                                 placeholder="Masukkan password baru jika ingin mengubah"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium">Email</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                             <input
                                 type="email"
                                 name="email"
                                 value={editSiswa.email}
                                 onChange={handleEditInputChange}
-                                className="w-full p-2 border rounded"
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm transition"
                                 required
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium">NIS</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">NIS</label>
                             <input
                                 type="text"
                                 name="nis"
                                 value={editSiswa.nis}
                                 onChange={handleEditInputChange}
-                                className="w-full p-2 border rounded"
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm transition"
                                 required
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium">Kelas</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Kelas</label>
                             <input
                                 type="text"
                                 name="userClass"
                                 value={editSiswa.userClass}
                                 onChange={handleEditInputChange}
-                                className="w-full p-2 border rounded"
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm transition"
                                 required
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium">Role</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
                             <select
                                 name="role"
                                 value={editSiswa.role}
                                 onChange={handleEditInputChange}
-                                className="w-full p-2 border rounded"
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm transition"
                                 required
                             >
                                 <option value="SISWA">SISWA</option>
                                 <option value="ADMIN">ADMIN</option>
                             </select>
                         </div>
-                    </div>
-                    <div className="mt-4 flex gap-2">
-                        <button
-                            type="submit"
-                            className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded"
-                        >
-                            Update
-                        </button>
-                        <button
-                            type="button"
-                            className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
-                            onClick={() => {
-                                setShowEditForm(false);
-                                setEditSiswaId(null);
-                            }}
-                        >
-                            Cancel
-                        </button>
-                    </div>
-                </form>
+                        <div className="col-span-1 md:col-span-2 flex gap-3">
+                            <button
+                                type="submit"
+                                className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
+                            >
+                                <Save className="w-4 h-4" /> Update
+                            </button>
+                            <button
+                                type="button"
+                                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
+                                onClick={() => {
+                                    setShowEditForm(false);
+                                    setEditSiswaId(null);
+                                }}
+                            >
+                                <X className="w-4 h-4" /> Batal
+                            </button>
+                        </div>
+                    </form>
+                </div>
             )}
 
+            {showDeleteModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center">
+                    <div className="bg-white p-6 rounded-xl shadow-2xl max-w-md w-full transform transition-all duration-300 scale-100">
+                        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2 text-red-700">
+                            <Trash2 className="w-5 h-5" /> Konfirmasi Hapus
+                        </h2>
+                        <p className="mb-6 text-gray-600">Apakah Anda yakin ingin menghapus siswa ini?</p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={handleDeleteSiswa}
+                                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
+                            >
+                                <Trash2 className="w-4 h-4" /> Hapus
+                            </button>
+                            <button
+                                onClick={() => setShowDeleteModal(false)}
+                                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
+                            >
+                                <X className="w-4 h-4" /> Batal
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showNotification && (
+                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center">
+                    <div className={`bg-white p-6 rounded-xl shadow-2xl max-w-md w-full transform transition-all duration-300 ${isError ? 'border-l-4 border-red-600' : 'border-l-4 border-green-600'}`}>
+                        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                            {isError ? (
+                                <AlertCircle className="w-5 h-5 text-red-600" />
+                            ) : (
+                                <CheckCircle className="w-5 h-5 text-green-600" />
+                            )}
+                            {isError ? "Error" : "Sukses"}
+                        </h2>
+                        <p className="mb-6 text-gray-600">{notificationMessage}</p>
+                        <button
+                            onClick={() => setShowNotification(false)}
+                            className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
+                        >
+                            <X className="w-4 h-4" /> Tutup
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {openInfoModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+                    <div className="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full transform transition-all duration-300 scale-100 border border-gray-200">
+                        <h2 className="text-xl font-bold mb-6 flex items-center gap-3 text-blue-700">
+                            <Info className="w-6 h-6" /> Detail Siswa
+                        </h2>
+
+                        <div className="space-y-5">
+                            <div className="flex items-start gap-3">
+                                <User className="w-5 h-5 text-gray-500 mt-1" />
+                                <div>
+                                    <label className="block text-sm text-gray-500 mb-1">Nama</label>
+                                    <p className="text-gray-900 font-semibold">{openInfoModal.name}</p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-start gap-3">
+                                <UserCircle className="w-5 h-5 text-gray-500 mt-1" />
+                                <div>
+                                    <label className="block text-sm text-gray-500 mb-1">Username</label>
+                                    <p className="text-gray-900 font-semibold">{openInfoModal.username}</p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-start gap-3">
+                                <Mail className="w-5 h-5 text-gray-500 mt-1" />
+                                <div>
+                                    <label className="block text-sm text-gray-500 mb-1">Email</label>
+                                    <p className="text-gray-900 font-semibold">{openInfoModal.email}</p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-start gap-3">
+                                <BadgeInfo className="w-5 h-5 text-gray-500 mt-1" />
+                                <div>
+                                    <label className="block text-sm text-gray-500 mb-1">NIS</label>
+                                    <p className="text-gray-900 font-semibold">{openInfoModal.nis}</p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-start gap-3">
+                                <BookOpen className="w-5 h-5 text-gray-500 mt-1" />
+                                <div>
+                                    <label className="block text-sm text-gray-500 mb-1">Kelas</label>
+                                    <p className="text-gray-900 font-semibold">{openInfoModal.userClass}</p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-start gap-3">
+                                <ShieldCheck className="w-5 h-5 text-gray-500 mt-1" />
+                                <div>
+                                    <label className="block text-sm text-gray-500 mb-1">Role</label>
+                                    <p className="text-gray-900 font-semibold capitalize">{openInfoModal.role}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="mt-8 flex justify-end">
+                            <button
+                                onClick={() => setOpenInfoModal(null)}
+                                className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl flex items-center gap-2 shadow-md transition-all hover:scale-105 active:scale-95"
+                            >
+                                <X className="w-4 h-4" /> Tutup
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+
             {loading ? (
-                <p>Loading data siswa...</p>
+                <div className="text-center text-gray-500 py-8">
+                    <div className="animate-spin inline-block w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full"></div>
+                    <p className="mt-2 font-medium">Memuat data siswa...</p>
+                </div>
             ) : (
-                <div className="overflow-x-auto">
-                    <table className="min-w-full table-auto border border-gray-300">
-                        <thead className="bg-gray-100">
+                <div className="bg-white rounded-xl shadow-2xl overflow-hidden cursor-pointer">
+                    <table className="min-w-full table-auto">
+                        <thead className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white">
                             <tr>
-                                <th className="border px-4 py-2">ID</th>
-                                <th className="border px-4 py-2">Nama</th>
-                                <th className="border px-4 py-2">Username</th>
-                                <th className="border px-4 py-2">Email</th>
-                                <th className="border px-4 py-2">NIS</th>
-                                <th className="border px-4 py-2">Kelas</th>
-                                <th className="border px-4 py-2">Role</th>
-                                <th className="border px-4 py-2">Action</th>
+                                <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">No</th>
+                                <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Nama</th>
+                                <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Username</th>
+                                <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Email</th>
+                                <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">NIS</th>
+                                <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Kelas</th>
+                                <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Role</th>
+                                <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {siswaList.map((siswa) => (
-                                <tr key={siswa.id} className="text-center">
-                                    <td className="border px-4 py-2">{siswa.id}</td>
-                                    <td className="border px-4 py-2">{siswa.name}</td>
-                                    <td className="border px-4 py-2">{siswa.username}</td>
-                                    <td className="border px-4 py-2">{siswa.email}</td>
-                                    <td className="border px-4 py-2">{siswa.nis}</td>
-                                    <td className="border px-4 py-2">{siswa.userClass}</td>
-                                    <td className="border px-4 py-2">{siswa.role}</td>
-                                    <td className="border px-4 py-2">
+                            {siswaList.map((siswa, index) => (
+                                <tr
+                                    key={siswa.id}
+                                    className={`${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} hover:bg-indigo-50 transition-all duration-200 transform hover:shadow-md`}
+                                >
+                                    <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
+                                        {index + 1}
+                                    </td>
+                                    <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
+                                        {siswa.name}
+                                    </td>
+                                    <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
+                                        {siswa.username}
+                                    </td>
+                                    <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
+                                        {siswa.email}
+                                    </td>
+                                    <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
+                                        {siswa.nis}
+                                    </td>
+                                    <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
+                                        {siswa.userClass}
+                                    </td>
+                                    <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
+                                        {siswa.role}
+                                    </td>
+                                    <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 flex gap-2">
                                         <button
-                                            className="bg-red-500 text-white p-0.5 rounded-md"
-                                            onClick={() => handleDeleteSiswa(siswa.id)}
-                                        >
-                                            Delete
-                                        </button>
-                                        <button
-                                            className="ml-2 p-0.5 bg-amber-500 rounded-md"
+                                            className="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1 rounded-lg flex items-center gap-1 shadow-sm transition-transform transform hover:scale-105 cursor-pointer"
                                             onClick={() => openEditForm(siswa)}
                                         >
-                                            Edit
+                                            <Edit className="w-4 h-4" />
+                                        </button>
+                                        <button
+                                            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg flex items-center gap-1 shadow-sm transition-transform transform hover:scale-105 cursor-pointer"
+                                            onClick={() => openDeleteModal(siswa.id)}
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                        <button
+                                            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg flex items-center gap-1 shadow-sm transition-transform transform hover:scale-105 cursor-pointer"
+                                            onClick={() => setOpenInfoModal(siswa)}
+                                        >
+                                            <Info className="w-4 h-4" />
                                         </button>
                                     </td>
                                 </tr>
