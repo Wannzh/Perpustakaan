@@ -218,21 +218,6 @@ const Login: React.FC = () => {
             )}
           </motion.button>
         </form>
-
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6, duration: 0.5 }}
-          className="mt-6 text-center text-sm text-gray-600"
-        >
-          Belum punya akun?{" "}
-          <a
-            href="/register"
-            className="text-indigo-600 hover:text-indigo-700 font-medium transition-all duration-300"
-          >
-            Daftar
-          </a>
-        </motion.p>
       </motion.div>
     </div>
   );

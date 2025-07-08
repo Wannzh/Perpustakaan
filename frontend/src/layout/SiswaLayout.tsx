@@ -4,10 +4,10 @@ import FooterSiswa from "../components/siswa/FooterSiswa";
 
 const SiswaLayout = () => {
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
+    <div className="flex flex-col min-h-screen bg-gray-50 ">
       <HeaderSiswa />
 
-      <main className="flex-1 p-4">
+      <main className="flex-1 p-4 mt-16">
         <Outlet />
       </main>
 
