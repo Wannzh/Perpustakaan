@@ -51,17 +51,28 @@ public class SpringSecurity {
                                 "/api-docs/swagger-config",
                                 "/api/auth/login")
                         .permitAll()
+                                
+                        .requestMatchers(
+                                "/api/books/get-all"
+                        ).hasAnyAuthority(RoleConstant.KEPALA.name(), RoleConstant.PUSTAKAWAN.name(), RoleConstant.SISWA.name())
                         
                         .requestMatchers(
-                                "/api/siswa/**","/api/books/**"
+                                "/api/siswa/**",
+                                "/api/books/**"
                         ).hasAnyAuthority(RoleConstant.KEPALA.name(), RoleConstant.PUSTAKAWAN.name())
                         
+                        // SISWA only
+                        .requestMatchers(
+                                "/api/peminjaman/self/**",
+                                "/api/pengembalian/self/**",
+                                "/api/notifications/**")
+                                .hasAuthority(RoleConstant.SISWA.name())
+
                         // KEPALA only
                         .requestMatchers(
                                 "/api/users/**",
                                 "/api/admin/**",
-                                "/api/reports/**",
-                                "/api/books/**")
+                                "/api/reports/**")
                         .hasAuthority(RoleConstant.KEPALA.name())
 
                         // PUSTAKAWAN only
@@ -71,13 +82,6 @@ public class SpringSecurity {
                                 )
                         .hasAuthority(RoleConstant.PUSTAKAWAN.name())
 
-                        // SISWA only
-                        .requestMatchers(
-                                "/api/peminjaman/self/**",
-                                "/api/books/**",
-                                "/api/pengembalian/self/**",
-                                "/api/notifications/**")
-                        .hasAuthority(RoleConstant.SISWA.name())
 
 
                         // All authenticated

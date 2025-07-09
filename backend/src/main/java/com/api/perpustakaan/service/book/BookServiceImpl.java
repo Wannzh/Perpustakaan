@@ -65,6 +65,7 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public List<BookResponseDTO> getAllBooks() {
+        System.out.println("masuk");
         return bookRepository.findAll().stream()
                 .map(this::mapToResponse)
                 .toList();

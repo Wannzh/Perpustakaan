@@ -74,7 +74,7 @@ const BooksControllerAdmin: React.FC = () => {
         }
 
         try {
-            const response = await fetch("http://localhost:8080/api/books", {
+            const response = await fetch("http://localhost:8080/api/books/get-all", {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -158,7 +158,7 @@ const BooksControllerAdmin: React.FC = () => {
         }
 
         try {
-            const response = await fetch("http://localhost:8080/api/books/all", {
+            const response = await fetch("http://localhost:8080/api/books", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

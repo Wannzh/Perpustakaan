@@ -74,7 +74,7 @@ const BooksControllerPustakawan: React.FC = () => {
         }
 
         try {
-            const response = await fetch("http://localhost:8080/api/books", {
+            const response = await fetch("http://localhost:8080/api/books/get-all", {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
