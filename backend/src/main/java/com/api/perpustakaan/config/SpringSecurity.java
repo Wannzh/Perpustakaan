@@ -53,14 +53,23 @@ public class SpringSecurity {
                         .permitAll()
                                 
                         .requestMatchers(
-                                "/api/books/get-all"
-                        ).hasAnyAuthority(RoleConstant.KEPALA.name(), RoleConstant.PUSTAKAWAN.name(), RoleConstant.SISWA.name())
-                        
+                                "/api/users/**",
+                                "/api/admin/**",
+                                "/api/reports/**")
+                        .hasAuthority(RoleConstant.KEPALA.name())
+
+                        // KEPALA + PUSTAKAWAN
                         .requestMatchers(
-                                "/api/siswa/**",
-                                "/api/books/**"
-                        ).hasAnyAuthority(RoleConstant.KEPALA.name(), RoleConstant.PUSTAKAWAN.name())
-                        
+                                "/api/books/**",
+                                "/api/siswa/**")
+                        .hasAnyAuthority(RoleConstant.KEPALA.name(), RoleConstant.PUSTAKAWAN.name())
+
+                        // PUSTAKAWAN only
+                        .requestMatchers(
+                                "/api/peminjaman/manual/**",
+                                "/api/pengembalian/manual/**")
+                        .hasAuthority(RoleConstant.PUSTAKAWAN.name())
+
                         // SISWA only
                         .requestMatchers(
                                 "/api/peminjaman/self/**",
