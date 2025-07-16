@@ -10,5 +10,4 @@ public class PeminjamanRequestDTO {
     private Integer bukuId;
     private LocalDate tanggalPinjam;
     private LocalDate tanggalJatuhTempo;
-    private String catatan;
 }

@@ -47,7 +47,6 @@ public class PeminjamanServiceImpl implements PeminjamanService {
         transaksi.setTanggalPinjam(request.getTanggalPinjam());
         transaksi.setTanggalJatuhTempo(request.getTanggalJatuhTempo());
         transaksi.setStatus(StatusConstant.DIPINJAM);
-        transaksi.setCatatan(request.getCatatan() != null ? request.getCatatan() : "-");
         transaksi.setCreatedAt(LocalDateTime.now());
         transaksi.setUpdatedAt(LocalDateTime.now());
 
