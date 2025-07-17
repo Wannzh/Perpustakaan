@@ -3,8 +3,6 @@ package com.api.perpustakaan.controller.book;
 import com.api.perpustakaan.dto.book.*;
 import com.api.perpustakaan.service.book.BookService;
 
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

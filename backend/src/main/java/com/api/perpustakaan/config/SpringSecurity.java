@@ -64,6 +64,11 @@ public class SpringSecurity {
                                 "/api/siswa/**")
                         .hasAnyAuthority(RoleConstant.KEPALA.name(), RoleConstant.PUSTAKAWAN.name())
 
+                        // KEPALA + PUSTAKAWAN + SISWA
+                        .requestMatchers(
+                                "/api/books/get-all"
+                        ).hasAnyAuthority(RoleConstant.KEPALA.name(), RoleConstant.PUSTAKAWAN.name(), RoleConstant.SISWA.name())
+
                         // PUSTAKAWAN only
                         .requestMatchers(
                                 "/api/peminjaman/manual/**",
@@ -90,8 +95,6 @@ public class SpringSecurity {
                                 "/api/pengembalian/manual/**"
                                 )
                         .hasAuthority(RoleConstant.PUSTAKAWAN.name())
-
-
 
                         // All authenticated
                         .anyRequest().authenticated())
