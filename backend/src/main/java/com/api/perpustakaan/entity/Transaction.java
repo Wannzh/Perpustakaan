@@ -55,7 +55,7 @@ public class Transaction {
     @Column(name = "denda_total")
     private Integer dendaTotal;
     
-    @Column(columnDefinition = "TEXT", nullable = false)
+    @Column(columnDefinition = "TEXT")
     private String catatan;
     
     @Column(name = "created_at")

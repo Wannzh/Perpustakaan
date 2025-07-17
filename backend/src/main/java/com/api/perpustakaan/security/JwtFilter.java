@@ -46,6 +46,8 @@ public class JwtFilter extends OncePerRequestFilter {
                 );
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                request.setAttribute("username", username);
             }
         } catch (Exception e) {
             System.out.println("JWT Filter Error: " + e.getMessage());
