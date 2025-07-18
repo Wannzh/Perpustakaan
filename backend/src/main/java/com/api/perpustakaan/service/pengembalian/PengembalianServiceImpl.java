@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import com.api.perpustakaan.constant.ReturnStatusConstant;
 import com.api.perpustakaan.constant.StatusConstant;
+import com.api.perpustakaan.constant.TypesOfFinesConstant;
 import com.api.perpustakaan.dto.pengembalian.PengembalianRequestDTO;
 import com.api.perpustakaan.entity.Book;
 import com.api.perpustakaan.entity.Transaction;
@@ -76,6 +77,23 @@ public class PengembalianServiceImpl implements PengembalianService {
 
         // Hitung dan set denda
         transaksi.setDenda(hitungDenda(transaksi, statusPengembalian));
+        transaksi.setDendaTotal(hitungDenda(transaksi, statusPengembalian));
+
+        // Memasukan jenis denda denda
+        switch (statusPengembalian) {
+            case NORMAL:
+                if (transaksi.getTanggalJatuhTempo() != null
+                        && LocalDate.now().isAfter(transaksi.getTanggalJatuhTempo())) {
+                    transaksi.setDendaJenis(TypesOfFinesConstant.TELAT);
+                }
+                break;
+            case RUSAK:
+                transaksi.setDendaJenis(TypesOfFinesConstant.RUSAK);
+                break;
+            case HILANG:
+                transaksi.setDendaJenis(TypesOfFinesConstant.HILANG);
+                break;
+        }
 
         // Kembalikan stok buku jika pengembalian NORMAL
         if (statusPengembalian == ReturnStatusConstant.NORMAL) {
@@ -120,6 +138,22 @@ public class PengembalianServiceImpl implements PengembalianService {
 
         // Hitung dan set denda
         transaksi.setDenda(hitungDenda(transaksi, statusPengembalian));
+        transaksi.setDendaTotal(hitungDenda(transaksi, statusPengembalian));
+        // Memasukan jenis denda denda
+        switch (statusPengembalian) {
+            case NORMAL:
+                if (transaksi.getTanggalJatuhTempo() != null
+                        && LocalDate.now().isAfter(transaksi.getTanggalJatuhTempo())) {
+                    transaksi.setDendaJenis(TypesOfFinesConstant.TELAT);
+                }
+                break;
+            case RUSAK:
+                transaksi.setDendaJenis(TypesOfFinesConstant.RUSAK);
+                break;
+            case HILANG:
+                transaksi.setDendaJenis(TypesOfFinesConstant.HILANG);
+                break;
+        }
 
         if (statusPengembalian == ReturnStatusConstant.NORMAL) {
             transaksi.getBook().setStokTersedia(transaksi.getBook().getStokTersedia() + 1);
