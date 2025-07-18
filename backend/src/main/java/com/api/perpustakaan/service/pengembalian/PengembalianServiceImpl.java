@@ -17,7 +17,6 @@ import com.api.perpustakaan.repository.transaction.TransactionRepository;
 
 import lombok.extern.slf4j.Slf4j;
 
-
 @Service
 @Slf4j
 public class PengembalianServiceImpl implements PengembalianService {
@@ -75,4 +74,48 @@ public class PengembalianServiceImpl implements PengembalianService {
 
         return ResponseEntity.ok("Pengembalian berhasil dicatat.");
     }
+
+    @Override
+    public ResponseEntity<?> kembalikanBukuMandiri(PengembalianRequestDTO request, Integer siswaId) {
+        // Validasi status RUSAK → catatan wajib
+        if (request.getStatusPengembalian() == ReturnStatusConstant.RUSAK &&
+                (request.getCatatan() == null || request.getCatatan().isBlank())) {
+            return ResponseEntity.badRequest()
+                    .body("Catatan wajib diisi jika status pengembalian adalah RUSAK.");
+        }
+
+        Transaction transaksi = transactionRepository.findById(request.getTransactionId())
+                .orElse(null);
+
+        if (transaksi == null) {
+            return ResponseEntity.badRequest().body("Transaksi tidak ditemukan.");
+        }
+
+        // Validasi bahwa yang mengembalikan adalah peminjam
+        if (!transaksi.getStudent().getId().equals(siswaId)) {
+            return ResponseEntity.status(403).body("Anda tidak memiliki hak untuk mengembalikan transaksi ini.");
+        }
+
+        // Cek apakah sudah dikembalikan
+        if (transaksi.getStatus() == StatusConstant.DIKEMBALIKAN) {
+            return ResponseEntity.badRequest().body("Buku ini sudah dikembalikan.");
+        }
+
+        // Proses pengembalian
+        transaksi.setTanggalKembali(LocalDate.now());
+        transaksi.setStatusKembali(request.getStatusPengembalian());
+        transaksi.setCatatan(request.getCatatan());
+        transaksi.setStatus(StatusConstant.DIKEMBALIKAN);
+        transaksi.setUpdatedAt(LocalDateTime.now());
+
+        // Tambah stok jika normal
+        if (request.getStatusPengembalian() == ReturnStatusConstant.NORMAL) {
+            transaksi.getBook().setStokTersedia(transaksi.getBook().getStokTersedia() + 1);
+        }
+
+        transactionRepository.save(transaksi);
+
+        return ResponseEntity.ok("Pengembalian mandiri berhasil dicatat.");
+    }
+
 }

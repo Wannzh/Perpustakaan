@@ -29,7 +29,7 @@ public class AuthServiceImpl implements AuthService {
             throw new CustomInvalidCredentialsException();
         }
 
-        String token = jwtUtil.generateToken(user.getUsername(), user.getRole());
+        String token = jwtUtil.generateToken(user.getUsername(), user.getId(), user.getRole());
 
         return LoginResponseDTO.builder()
                 .id(user.getId())

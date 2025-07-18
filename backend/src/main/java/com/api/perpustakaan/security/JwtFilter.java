@@ -37,6 +37,7 @@ public class JwtFilter extends OncePerRequestFilter {
             Claims claims = jwtUtil.resolveClaims(request);
             if (claims != null && jwtUtil.validateClaims(claims)) {
                 String username = claims.get("username", String.class);
+                Integer userId = claims.get("userId", Integer.class);
                 String role = claims.get("role", String.class);
 
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
@@ -48,6 +49,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
                 request.setAttribute("username", username);
+                request.setAttribute("userId", userId);
             }
         } catch (Exception e) {
             System.out.println("JWT Filter Error: " + e.getMessage());

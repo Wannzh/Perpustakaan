@@ -22,10 +22,11 @@ public class JwtUtil {
     @SuppressWarnings("deprecation")
     private final JwtParser jwtParser = Jwts.parser().setSigningKey(SECRET_KEY);
 
-    public String generateToken(String username, RoleConstant role) {
+    public String generateToken(String username, Integer userId, RoleConstant role) {
         Claims claims = Jwts.claims().setSubject(username);
-        claims.put("username", username);
+        claims.put("username", username);   
         claims.put("role", role.name());
+        claims.put("userId", userId);
 
         Date issuedAt = new Date();
         Date expiration = new Date(issuedAt.getTime() + TimeUnit.MINUTES.toMillis(EXPIRATION_MINUTES));
