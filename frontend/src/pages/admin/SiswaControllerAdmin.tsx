@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
-import { Users, Plus, Search, X, XCircle, CheckCircle, AlertCircle, Info, BadgeInfo, BookOpen, ShieldCheck, UserCircle, Mail, User } from "lucide-react";
+import { Users, Search, X, XCircle, CheckCircle, AlertCircle, Info, BadgeInfo, BookOpen, ShieldCheck, UserCircle, Mail, User } from "lucide-react";
 
 // Tipe data sesuai dengan SiswaResponseDTO di Java
 interface Siswa {
@@ -16,7 +16,7 @@ interface Siswa {
 const SiswaControllerAdmin: React.FC = () => {
     const [siswaList, setSiswaList] = useState<Siswa[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
-    const [showAddForm, setShowAddForm] = useState<boolean>(false);
+    // const [showAddForm, setShowAddForm] = useState<boolean>(false);
     const [showNotification, setShowNotification] = useState<boolean>(false);
     const [notificationMessage, setNotificationMessage] = useState<string>("");
     const [isError, setIsError] = useState<boolean>(false);
@@ -162,12 +162,12 @@ const SiswaControllerAdmin: React.FC = () => {
                     >
                         <XCircle className="w-4 h-4" /> Clear
                     </button>
-                    <button
+                    {/* <button
                         className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
                         onClick={() => setShowAddForm(!showAddForm)}
                     >
                         <Plus className="w-4 h-4" /> {showAddForm ? "Tutup" : "Tambah Siswa"}
-                    </button>
+                    </button> */}
                 </div>
             </div>
 

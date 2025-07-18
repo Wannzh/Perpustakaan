@@ -19,87 +19,88 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @RequiredArgsConstructor
 public class SpringSecurity {
 
-    private final JwtFilter jwtFilter;
+        private final JwtFilter jwtFilter;
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+        @Bean
+        public PasswordEncoder passwordEncoder() {
+                return new BCryptPasswordEncoder();
+        }
 
-    @SuppressWarnings("removal")
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.cors();
-        http
-                .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint(new CustomUnAuthorizeException())
-                        .accessDeniedHandler(new CustomAccessDeniedException()))
-                .authorizeHttpRequests(auth -> auth
-                        // Public
-                        .requestMatchers(
-                                "/v3/api-docs/**",
-                                "/swagger-ui/**",
-                                "/swagger-ui.html",
-                                "/swagger-resources/**",
-                                "/configuration/ui",
-                                "/configuration/security",
-                                "/webjars/**",
-                                "/api-docs/**",
-                                "/api-docs/swagger-config",
-                                "/api/auth/login")
-                        .permitAll()
-                                
-                        .requestMatchers(
-                                "/api/users/**",
-                                "/api/admin/**",
-                                "/api/reports/**")
-                        .hasAuthority(RoleConstant.KEPALA.name())
+        @SuppressWarnings("removal")
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                http.cors();
+                http
+                                .csrf(csrf -> csrf.disable())
+                                .sessionManagement(session -> session
+                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                                .exceptionHandling(ex -> ex
+                                                .authenticationEntryPoint(new CustomUnAuthorizeException())
+                                                .accessDeniedHandler(new CustomAccessDeniedException()))
+                                .authorizeHttpRequests(auth -> auth
+                                                // Public
+                                                .requestMatchers(
+                                                                "/v3/api-docs/**",
+                                                                "/swagger-ui/**",
+                                                                "/swagger-ui.html",
+                                                                "/swagger-resources/**",
+                                                                "/configuration/ui",
+                                                                "/configuration/security",
+                                                                "/webjars/**",
+                                                                "/api-docs/**",
+                                                                "/api-docs/swagger-config",
+                                                                "/api/auth/login")
+                                                .permitAll()
 
-                        // KEPALA + PUSTAKAWAN
-                        .requestMatchers(
-                                "/api/books/**",
-                                "/api/siswa/**")
-                        .hasAnyAuthority(RoleConstant.KEPALA.name(), RoleConstant.PUSTAKAWAN.name())
+                                                .requestMatchers(
+                                                                "/api/users/**",
+                                                                "/api/admin/**",
+                                                                "/api/reports/**")
+                                                .hasAuthority(RoleConstant.KEPALA.name())
+                                                // KEPALA + PUSTAKAWAN + SISWA
+                                                .requestMatchers(
+                                                                "/api/books/get-all")
+                                                .hasAnyAuthority(RoleConstant.KEPALA.name(),
+                                                                RoleConstant.PUSTAKAWAN.name(),
+                                                                RoleConstant.SISWA.name())
 
-                        // KEPALA + PUSTAKAWAN + SISWA
-                        .requestMatchers(
-                                "/api/books/get-all"
-                        ).hasAnyAuthority(RoleConstant.KEPALA.name(), RoleConstant.PUSTAKAWAN.name(), RoleConstant.SISWA.name())
+                                                // KEPALA + PUSTAKAWAN
+                                                .requestMatchers(
+                                                                "/api/books/**",
+                                                                "/api/siswa/**")
+                                                .hasAnyAuthority(RoleConstant.KEPALA.name(),
+                                                                RoleConstant.PUSTAKAWAN.name())
 
-                        // PUSTAKAWAN only
-                        .requestMatchers(
-                                "/api/peminjaman/manual/**",
-                                "/api/pengembalian/manual/**")
-                        .hasAuthority(RoleConstant.PUSTAKAWAN.name())
+                                                // PUSTAKAWAN only
+                                                .requestMatchers(
+                                                                "/api/peminjaman/manual/**",
+                                                                "/api/pengembalian/manual/**")
+                                                .hasAuthority(RoleConstant.PUSTAKAWAN.name())
 
-                        // SISWA only
-                        .requestMatchers(
-                                "/api/peminjaman/self/**",
-                                "/api/pengembalian/self/**",
-                                "/api/notifications/**")
-                                .hasAuthority(RoleConstant.SISWA.name())
+                                                // SISWA only
+                                                .requestMatchers(
+                                                                "/api/peminjaman/self/**",
+                                                                "/api/pengembalian/self/**",
+                                                                "/api/notifications/**")
+                                                .hasAuthority(RoleConstant.SISWA.name())
 
-                        // KEPALA only
-                        .requestMatchers(
-                                "/api/users/**",
-                                "/api/admin/**",
-                                "/api/reports/**")
-                        .hasAuthority(RoleConstant.KEPALA.name())
+                                                // KEPALA only
+                                                .requestMatchers(
+                                                                "/api/users/**",
+                                                                "/api/admin/**",
+                                                                "/api/reports/**")
+                                                .hasAuthority(RoleConstant.KEPALA.name())
 
-                        // PUSTAKAWAN only
-                        .requestMatchers(
-                                "/api/peminjaman/manual/**",
-                                "/api/pengembalian/manual/**"
-                                )
-                        .hasAuthority(RoleConstant.PUSTAKAWAN.name())
+                                                // PUSTAKAWAN only
+                                                .requestMatchers(
+                                                                "/api/peminjaman/manual/**",
+                                                                "/api/pengembalian/manual/**")
+                                                .hasAuthority(RoleConstant.PUSTAKAWAN.name())
 
-                        // All authenticated
-                        .anyRequest().authenticated())
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                                                // All authenticated
+                                                .anyRequest().authenticated())
+                                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
-        return http.build();
-    }
+                return http.build();
+        }
 }

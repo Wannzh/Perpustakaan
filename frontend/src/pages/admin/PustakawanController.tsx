@@ -633,7 +633,15 @@ const PustakawanController: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {pustakawanList.map((pustakawan, index) => (
+                            {pustakawanList.length === 0 ? (
+                                 <tr>
+                                 <td colSpan={7} className="px-6 py-4 text-center text-sm text-gray-500">
+                                     Tidak ada data siswa ditemukan
+                                 </td>
+                             </tr>
+                            ) : (
+                            
+                            pustakawanList.map((pustakawan, index) => (
                                 <tr
                                     key={pustakawan.id}
                                     className={`${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} hover:bg-indigo-50 transition-all duration-200 transform hover:shadow-md`}
@@ -674,7 +682,8 @@ const PustakawanController: React.FC = () => {
                                         </button>
                                     </td>
                                 </tr>
-                            ))}
+                            ))
+                        )}
                         </tbody>
                     </table>
                 </div>
