@@ -11,7 +11,7 @@ const HeaderSiswa: React.FC = () => {
   const navItems = [
     { name: 'Profile', href: 'profile', icon: User },
     { name: 'Books', href: 'books-list', icon: Book },
-    { name: 'Loans', href: '/loans', icon: FileText },
+    { name: 'Loans', href: 'loans', icon: FileText },
   ];
 
   useEffect(() => {

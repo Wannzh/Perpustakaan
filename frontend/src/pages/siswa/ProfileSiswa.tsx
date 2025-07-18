@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Cookies from "js-cookie";
-import { User, Mail, IdCard, Shield, School, User2, LogOut, AlertCircle, CheckCircle, X } from "lucide-react";
+import { User, Mail, Shield, School, User2, LogOut, AlertCircle, CheckCircle, X } from "lucide-react";
 
 interface User {
     id: number;
@@ -152,7 +152,7 @@ const ProfileSiswa: React.FC = () => {
                             transition={{ delay: 0.7, duration: 0.5 }}
                             className="flex items-center space-x-3 p-4 bg-gray-50/50 rounded-lg shadow-sm hover:shadow-md transition-all duration-300"
                         >
-                            <IdCard className="text-indigo-500" size={20} />
+                            <User className="text-indigo-500" size={20} />
                             <div>
                                 <p className="text-sm text-gray-500">NIS</p>
                                 <p className="text-gray-800 font-medium">{user.nis}</p>

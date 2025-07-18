@@ -718,28 +718,28 @@ const SiswaControllerPustkawan: React.FC = () => {
                                     key={siswa.id}
                                     className={`${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} hover:bg-indigo-50 transition-all duration-200 transform hover:shadow-md`}
                                 >
-                                    <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
+                                    <td className="whitespace-nowrap text-xs text-gray-900 px-6 py-4 font-medium">
                                         {index + 1}
                                     </td>
-                                    <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
+                                    <td className="whitespace-nowrap text-xs text-gray-900 px-6 py-4 font-medium">
                                         {siswa.name}
                                     </td>
-                                    <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
+                                    <td className="whitespace-nowrap text-xs text-gray-900 px-6 py-4 font-medium">
                                         {siswa.username}
                                     </td>
-                                    <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
+                                    <td className="whitespace-nowrap text-xs text-gray-900 px-6 py-4 font-medium">
                                         {siswa.email}
                                     </td>
-                                    <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
+                                    <td className="whitespace-nowrap text-xs text-gray-900 px-6 py-4 font-medium">
                                         {siswa.nis}
                                     </td>
-                                    <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
+                                    <td className="whitespace-nowrap text-xs text-gray-900 px-6 py-4 font-medium">
                                         {siswa.userClass}
                                     </td>
-                                    <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
+                                    <td className="whitespace-nowrap text-xs text-gray-900 px-6 py-4 font-medium">
                                         {siswa.role}
                                     </td>
-                                    <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 flex gap-2">
+                                    <td className="whitespace-nowrap text-xs text-gray-900 px-6 py-4 flex gap-2">
                                         <button
                                             className="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1 rounded-lg flex items-center gap-1 shadow-sm transition-transform transform hover:scale-105 cursor-pointer"
                                             onClick={() => openEditForm(siswa)}

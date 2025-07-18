@@ -17,6 +17,7 @@ const SidebarPerpustakawan: React.FC = () => {
     { to: "", label: "Dashboard", icon: LayoutDashboard },
     { to: "siswa-management", label: "Siswa Management", icon: Users },
     { to: "books-management", label: "Books Controller", icon: Book },
+    { to: "loans-management", label: "Loans Controller", icon: Book },
   ];
 
   return (
