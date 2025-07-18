@@ -2,6 +2,7 @@ package com.api.perpustakaan.service.pengembalian;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -27,95 +28,105 @@ public class PengembalianServiceImpl implements PengembalianService {
     @Autowired
     private BookRepository bookRepository;
 
+    private int hitungDenda(Transaction transaksi, ReturnStatusConstant status) {
+        LocalDate now = LocalDate.now();
+        int denda = 0;
+
+        switch (status) {
+            case NORMAL:
+                if (transaksi.getTanggalJatuhTempo() != null && now.isAfter(transaksi.getTanggalJatuhTempo())) {
+                    int selisihHari = (int) ChronoUnit.DAYS.between(transaksi.getTanggalJatuhTempo(), now);
+                    denda = selisihHari * 2000;
+                }
+                break;
+            case RUSAK:
+                denda = 50000;
+                break;
+            case HILANG:
+                denda = 100000;
+                break;
+        }
+
+        return denda;
+    }
+
     @Override
     public ResponseEntity<?> kembalikanBuku(PengembalianRequestDTO request) {
-        // Validasi status RUSAK → catatan wajib diisi
         if (request.getStatusPengembalian() == ReturnStatusConstant.RUSAK &&
                 (request.getCatatan() == null || request.getCatatan().isBlank())) {
-            return ResponseEntity.badRequest()
-                    .body("Catatan wajib diisi jika status pengembalian adalah RUSAK.");
+            return ResponseEntity.badRequest().body("Catatan wajib diisi jika status pengembalian adalah RUSAK.");
         }
 
-        // Cari transaksi berdasarkan ID
-        Transaction transaksi = transactionRepository.findById(request.getTransactionId())
-                .orElse(null);
-
+        Transaction transaksi = transactionRepository.findById(request.getTransactionId()).orElse(null);
         if (transaksi == null) {
-            return ResponseEntity.badRequest()
-                    .body("Data transaksi peminjaman tidak ditemukan.");
+            return ResponseEntity.badRequest().body("Data transaksi peminjaman tidak ditemukan.");
         }
 
-        // Cek apakah sudah dikembalikan
         if (transaksi.getStatus() == StatusConstant.DIKEMBALIKAN) {
-            return ResponseEntity.badRequest()
-                    .body("Buku ini sudah dikembalikan sebelumnya.");
+            return ResponseEntity.badRequest().body("Buku ini sudah dikembalikan sebelumnya.");
         }
 
-        // Proses pengembalian
+        // Hitung denda dan set pengembalian
+        ReturnStatusConstant statusPengembalian = request.getStatusPengembalian();
         transaksi.setTanggalKembali(LocalDate.now());
-        transaksi.setStatusKembali(request.getStatusPengembalian());
+        transaksi.setStatusKembali(statusPengembalian);
         transaksi.setCatatan(request.getCatatan());
         transaksi.setStatus(StatusConstant.DIKEMBALIKAN);
         transaksi.setUpdatedAt(LocalDateTime.now());
 
-        // Kembalikan stok buku jika status pengembalian NORMAL
-        if (request.getStatusPengembalian() == ReturnStatusConstant.NORMAL) {
+        // Hitung dan set denda
+        transaksi.setDenda(hitungDenda(transaksi, statusPengembalian));
+
+        // Kembalikan stok buku jika pengembalian NORMAL
+        if (statusPengembalian == ReturnStatusConstant.NORMAL) {
             Book buku = transaksi.getBook();
             if (buku != null) {
-                log.info("Stok sebelum: {}", buku.getStokTersedia());
-                log.info("Menambahkan stok buku id: {}", buku.getId());
                 buku.setStokTersedia(buku.getStokTersedia() + 1);
-
                 bookRepository.save(buku);
             }
         }
 
         transactionRepository.save(transaksi);
-
         return ResponseEntity.ok("Pengembalian berhasil dicatat.");
     }
 
     @Override
     public ResponseEntity<?> kembalikanBukuMandiri(PengembalianRequestDTO request, Integer siswaId) {
-        // Validasi status RUSAK → catatan wajib
         if (request.getStatusPengembalian() == ReturnStatusConstant.RUSAK &&
                 (request.getCatatan() == null || request.getCatatan().isBlank())) {
-            return ResponseEntity.badRequest()
-                    .body("Catatan wajib diisi jika status pengembalian adalah RUSAK.");
+            return ResponseEntity.badRequest().body("Catatan wajib diisi jika status pengembalian adalah RUSAK.");
         }
 
-        Transaction transaksi = transactionRepository.findById(request.getTransactionId())
-                .orElse(null);
-
+        Transaction transaksi = transactionRepository.findById(request.getTransactionId()).orElse(null);
         if (transaksi == null) {
             return ResponseEntity.badRequest().body("Transaksi tidak ditemukan.");
         }
 
-        // Validasi bahwa yang mengembalikan adalah peminjam
         if (!transaksi.getStudent().getId().equals(siswaId)) {
             return ResponseEntity.status(403).body("Anda tidak memiliki hak untuk mengembalikan transaksi ini.");
         }
 
-        // Cek apakah sudah dikembalikan
         if (transaksi.getStatus() == StatusConstant.DIKEMBALIKAN) {
             return ResponseEntity.badRequest().body("Buku ini sudah dikembalikan.");
         }
 
         // Proses pengembalian
+        ReturnStatusConstant statusPengembalian = request.getStatusPengembalian();
         transaksi.setTanggalKembali(LocalDate.now());
-        transaksi.setStatusKembali(request.getStatusPengembalian());
+        transaksi.setStatusKembali(statusPengembalian);
         transaksi.setCatatan(request.getCatatan());
         transaksi.setStatus(StatusConstant.DIKEMBALIKAN);
         transaksi.setUpdatedAt(LocalDateTime.now());
 
-        // Tambah stok jika normal
-        if (request.getStatusPengembalian() == ReturnStatusConstant.NORMAL) {
+        // Hitung dan set denda
+        transaksi.setDenda(hitungDenda(transaksi, statusPengembalian));
+
+        if (statusPengembalian == ReturnStatusConstant.NORMAL) {
             transaksi.getBook().setStokTersedia(transaksi.getBook().getStokTersedia() + 1);
+            bookRepository.save(transaksi.getBook());
         }
 
         transactionRepository.save(transaksi);
-
         return ResponseEntity.ok("Pengembalian mandiri berhasil dicatat.");
     }
-
 }
