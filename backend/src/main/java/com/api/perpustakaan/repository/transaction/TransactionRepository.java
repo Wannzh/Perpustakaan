@@ -10,28 +10,67 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.api.perpustakaan.constant.StatusConstant;
+import com.api.perpustakaan.dto.laporan.BukuTerpopulerDTO;
+import com.api.perpustakaan.dto.laporan.SiswaTerlambatDTO;
 import com.api.perpustakaan.entity.Transaction;
 
 public interface TransactionRepository extends JpaRepository<Transaction, Integer> {
-    @Query("SELECT t FROM Transaction t " +
-            "WHERE LOWER(t.book.judul) LIKE %:keyword% " +
-            "OR LOWER(t.student.name) LIKE %:keyword%")
-    Page<Transaction> findByKeyword(@Param("keyword") String keyword, Pageable pageable);
+        int countByStatus(StatusConstant status);
 
-    @Query("SELECT t FROM Transaction t " +
-            "WHERE t.status = :status AND " +
-            "(LOWER(t.book.judul) LIKE %:keyword% OR LOWER(t.student.name) LIKE %:keyword%)")
-    Page<Transaction> findByStatusAndKeyword(@Param("status") StatusConstant status,
-            @Param("keyword") String keyword,
-            Pageable pageable);
+        @Query("SELECT SUM(t.denda) FROM Transaction t WHERE t.denda > 0")
+        Integer sumTotalDenda();
 
-    Page<Transaction> findByStatus(StatusConstant status, Pageable pageable);
+        @Query("SELECT new com.api.perpustakaan.dto.laporan.BukuTerpopulerDTO(t.book.judul, COUNT(t)) " +
+                        "FROM Transaction t " +
+                        "GROUP BY t.book.judul " +
+                        "ORDER BY COUNT(t) DESC")
+        List<BukuTerpopulerDTO> findMostBorrowedBooks();
 
-    List<Transaction> findByStatus(StatusConstant status);
-    Page<Transaction> findAll(Pageable pageable);
+        @Query("SELECT new com.api.perpustakaan.dto.laporan.SiswaTerlambatDTO(t.student.name, COUNT(t)) " +
+                        "FROM Transaction t " +
+                        "WHERE t.denda > 0 " +
+                        "GROUP BY t.student.name " +
+                        "ORDER BY COUNT(t) DESC")
+        List<SiswaTerlambatDTO> findMostLateStudents();
 
-    List<Transaction> findByTanggalJatuhTempo(LocalDate tanggal);
+        @Query("SELECT new com.api.perpustakaan.dto.laporan.BukuTerpopulerDTO(t.book.judul, COUNT(t)) " +
+                        "FROM Transaction t " +
+                        "WHERE t.tanggalPinjam BETWEEN :startDate AND :endDate " +
+                        "GROUP BY t.book.judul " +
+                        "ORDER BY COUNT(t) DESC")
+        List<BukuTerpopulerDTO> findMostBorrowedBooksByPeriod(
+                        @Param("startDate") LocalDate startDate,
+                        @Param("endDate") LocalDate endDate);
 
-    List<Transaction> findByStatusAndTanggalJatuhTempoBefore(StatusConstant status, LocalDate tanggal);
+        @Query("SELECT new com.api.perpustakaan.dto.laporan.SiswaTerlambatDTO(t.student.name, COUNT(t)) " +
+                        "FROM Transaction t " +
+                        "WHERE t.denda > 0 AND t.tanggalPinjam BETWEEN :startDate AND :endDate " +
+                        "GROUP BY t.student.name " +
+                        "ORDER BY COUNT(t) DESC")
+        List<SiswaTerlambatDTO> findMostLateStudentsByPeriod(
+                        @Param("startDate") LocalDate startDate,
+                        @Param("endDate") LocalDate endDate);
+
+        @Query("SELECT t FROM Transaction t " +
+                        "WHERE LOWER(t.book.judul) LIKE %:keyword% " +
+                        "OR LOWER(t.student.name) LIKE %:keyword%")
+        Page<Transaction> findByKeyword(@Param("keyword") String keyword, Pageable pageable);
+
+        @Query("SELECT t FROM Transaction t " +
+                        "WHERE t.status = :status AND " +
+                        "(LOWER(t.book.judul) LIKE %:keyword% OR LOWER(t.student.name) LIKE %:keyword%)")
+        Page<Transaction> findByStatusAndKeyword(@Param("status") StatusConstant status,
+                        @Param("keyword") String keyword,
+                        Pageable pageable);
+
+        Page<Transaction> findByStatus(StatusConstant status, Pageable pageable);
+
+        List<Transaction> findByStatus(StatusConstant status);
+
+        Page<Transaction> findAll(Pageable pageable);
+
+        List<Transaction> findByTanggalJatuhTempo(LocalDate tanggal);
+
+        List<Transaction> findByStatusAndTanggalJatuhTempoBefore(StatusConstant status, LocalDate tanggal);
 
 }

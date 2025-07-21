@@ -54,8 +54,7 @@ public class SpringSecurity {
 
                                                 .requestMatchers(
                                                                 "/api/users/**",
-                                                                "/api/admin/**",
-                                                                "/api/reports/**")
+                                                                "/api/admin/**")
                                                 .hasAuthority(RoleConstant.KEPALA.name())
                                                 // KEPALA + PUSTAKAWAN + SISWA
                                                 .requestMatchers(
@@ -67,7 +66,8 @@ public class SpringSecurity {
                                                 // KEPALA + PUSTAKAWAN
                                                 .requestMatchers(
                                                                 "/api/books/**",
-                                                                "/api/siswa/**")
+                                                                "/api/siswa/**",
+                                                                "/api/laporan/**")
                                                 .hasAnyAuthority(RoleConstant.KEPALA.name(),
                                                                 RoleConstant.PUSTAKAWAN.name())
 
