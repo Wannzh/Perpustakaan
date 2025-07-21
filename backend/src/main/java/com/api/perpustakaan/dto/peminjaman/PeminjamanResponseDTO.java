@@ -1,6 +1,7 @@
 package com.api.perpustakaan.dto.peminjaman;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 import com.api.perpustakaan.constant.ReturnStatusConstant;
 import com.api.perpustakaan.constant.StatusConstant;

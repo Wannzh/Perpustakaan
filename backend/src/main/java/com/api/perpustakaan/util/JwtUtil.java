@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Date;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Component
@@ -22,7 +23,7 @@ public class JwtUtil {
     @SuppressWarnings("deprecation")
     private final JwtParser jwtParser = Jwts.parser().setSigningKey(SECRET_KEY);
 
-    public String generateToken(String username, Integer userId, RoleConstant role) {
+    public String generateToken(String username, UUID userId, RoleConstant role) {
         Claims claims = Jwts.claims().setSubject(username);
         claims.put("username", username);   
         claims.put("role", role.name());

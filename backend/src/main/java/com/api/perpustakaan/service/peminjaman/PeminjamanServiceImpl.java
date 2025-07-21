@@ -20,6 +20,8 @@ import com.api.perpustakaan.repository.book.BookRepository;
 import com.api.perpustakaan.repository.transaction.TransactionRepository;
 import com.api.perpustakaan.repository.user.UserRepository;
 
+import jakarta.transaction.Transactional;
+
 import org.springframework.data.domain.Sort;
 
 import lombok.RequiredArgsConstructor;
@@ -33,6 +35,7 @@ public class PeminjamanServiceImpl implements PeminjamanService {
     private final TransactionRepository transactionRepository;
 
     @Override
+    @Transactional
     public PeminjamanResponseDTO createManual(PeminjamanRequestDTO request) {
         User siswa = userRepository.findById(request.getSiswaId())
                 .orElseThrow(() -> new RuntimeException("Siswa tidak ditemukan"));
@@ -71,6 +74,7 @@ public class PeminjamanServiceImpl implements PeminjamanService {
     }
 
     @Override
+    @Transactional
     public PeminjamanResponseDTO createSelfPeminjaman(String username, PeminjamanRequestSelfDTO request) {
         User siswa = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Siswa tidak ditemukan"));

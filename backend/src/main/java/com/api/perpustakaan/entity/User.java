@@ -1,6 +1,7 @@
 package com.api.perpustakaan.entity;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import com.api.perpustakaan.constant.RoleConstant;
 
@@ -15,9 +16,9 @@ import lombok.*;
 @AllArgsConstructor
 public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
-    private Integer id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "id", nullable = false, columnDefinition = "BINARY(16)")
+    private UUID id;
 
     @Column(name = "nama")
     private String name;

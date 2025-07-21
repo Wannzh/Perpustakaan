@@ -1,5 +1,7 @@
 package com.api.perpustakaan.dto.siswa;
 
+import java.util.UUID;
+
 import com.api.perpustakaan.constant.RoleConstant;
 
 import lombok.Builder;
@@ -8,7 +10,7 @@ import lombok.Data;
 @Data
 @Builder
 public class SiswaResponseDTO {
-    private Integer id;
+    private UUID id;
     private String name;
     private String username;
     private String email;

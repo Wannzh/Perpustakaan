@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -44,7 +45,7 @@ public class SiswaManagementServiceImpl implements SiswaManagementService {
     }
 
     @Override
-    public SiswaResponseDTO updateSiswa(Integer id, SiswaRequestDTO request) {
+    public SiswaResponseDTO updateSiswa(UUID id, SiswaRequestDTO request) {
         User siswa = userRepository.findById(id).orElseThrow(() -> new RuntimeException("Siswa not found"));
         siswa.setName(request.getName());
         siswa.setUsername(request.getUsername());
@@ -59,7 +60,7 @@ public class SiswaManagementServiceImpl implements SiswaManagementService {
     }
 
     @Override
-    public void deleteSiswa(Integer id) {
+    public void deleteSiswa(UUID id) {
         User siswa = userRepository.findById(id).orElseThrow(() -> new RuntimeException("Siswa not found"));
         userRepository.delete(siswa);
     }

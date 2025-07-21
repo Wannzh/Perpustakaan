@@ -1,12 +1,14 @@
 package com.api.perpustakaan.dto.auth;
 
+import java.util.UUID;
+
 import com.api.perpustakaan.constant.RoleConstant;
 import lombok.*;
 
 @Data
 @Builder
 public class LoginResponseDTO {
-    private Integer id;
+    private UUID id;
     private String name;
     private String username;
     private String email;

@@ -18,6 +18,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -56,7 +57,7 @@ public class UserManagementServiceImpl implements UserManagementService {
     }
 
     @Override
-    public PustakawanResponseDTO updatePustakawan(Integer id, PustakawanRequestDTO request) {
+    public PustakawanResponseDTO updatePustakawan(UUID id, PustakawanRequestDTO request) {
         User existing = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pustakawan not found"));
 
@@ -84,7 +85,7 @@ public class UserManagementServiceImpl implements UserManagementService {
     }
 
     @Override
-    public void deletePustakawan(Integer id) {
+    public void deletePustakawan(UUID id) {
         User pustakawan = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pustakawan not found"));
 

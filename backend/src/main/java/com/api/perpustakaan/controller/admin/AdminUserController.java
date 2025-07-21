@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,13 +34,13 @@ public class AdminUserController {
 
     @PutMapping("/pustakawan/edit/{id}")
     public ResponseEntity<PustakawanResponseDTO> updatePustakawan(
-            @PathVariable Integer id,
+            @PathVariable UUID id,
             @RequestBody PustakawanRequestDTO request) {
         return ResponseEntity.ok(userManagementService.updatePustakawan(id, request));
     }
 
     @DeleteMapping("/pustakawan/hapus/{id}")
-    public ResponseEntity<String> deletePustakawan(@PathVariable Integer id) {
+    public ResponseEntity<String> deletePustakawan(@PathVariable UUID id) {
         userManagementService.deletePustakawan(id);
         return ResponseEntity.ok("Pustakawan deleted successfully");
     }

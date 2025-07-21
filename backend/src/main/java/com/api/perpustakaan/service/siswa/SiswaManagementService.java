@@ -1,6 +1,7 @@
 package com.api.perpustakaan.service.siswa;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.web.multipart.MultipartFile;
 
@@ -9,8 +10,8 @@ import com.api.perpustakaan.dto.siswa.SiswaResponseDTO;
 
 public interface SiswaManagementService {
     SiswaResponseDTO createSiswa(SiswaRequestDTO request);
-    SiswaResponseDTO updateSiswa(Integer id, SiswaRequestDTO request);
-    void deleteSiswa(Integer id);
+    SiswaResponseDTO updateSiswa(UUID id, SiswaRequestDTO request);
+    void deleteSiswa(UUID id);
     List<SiswaResponseDTO> getAllSiswa();
     List<SiswaResponseDTO> searchSiswaByName(String name);
     List<SiswaResponseDTO> searchSiswaByNis(String nis);

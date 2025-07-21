@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/siswa")
@@ -31,12 +32,12 @@ public class SiswaController {
     }
 
     @PutMapping("/edit/{id}")
-    public ResponseEntity<SiswaResponseDTO> update(@PathVariable Integer id, @RequestBody SiswaRequestDTO request) {
+    public ResponseEntity<SiswaResponseDTO> update(@PathVariable UUID id, @RequestBody SiswaRequestDTO request) {
         return ResponseEntity.ok(siswaManagementService.updateSiswa(id, request));
     }
 
     @DeleteMapping("/hapus/{id}")
-    public ResponseEntity<String> delete(@PathVariable Integer id) {
+    public ResponseEntity<String> delete(@PathVariable UUID id) {
         siswaManagementService.deleteSiswa(id);
         return ResponseEntity.ok("Siswa deleted successfully");
     }
