@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Notifikasi Peminjaman Buku</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: #333;
+            padding: 20px;
+            background-color: #f8f8f8;
+        }
+        .container {
+            background-color: #ffffff;
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 600px;
+            margin: auto;
+        }
+        h2 {
+            color: #007bff;
+        }
+        .info {
+            margin-bottom: 15px;
+        }
+        .label {
+            font-weight: bold;
+        }
+        .footer {
+            margin-top: 30px;
+            font-size: 12px;
+            color: #888;
+        }
+        .signature {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Notifikasi Peminjaman Buku</h2>
+
+    <p>Halo <span th:text="${namaSiswa}">Nama Siswa</span>,</p>
+
+    <p>
+        Berikut ini adalah informasi mengenai peminjaman buku Anda:
+    </p>
+
+    <div class="info">
+        <div><span class="label">📖 Judul Buku:</span> <span th:text="${judulBuku}">Contoh Judul</span></div>
+        <div><span class="label">📅 Tanggal Jatuh Tempo:</span> <span th:text="${tanggalJatuhTempo}">01 Januari 2025</span></div>
+        
+        <div th:if="${jumlahHariTerlambat > 0}">
+            <div><span class="label">⏰ Jumlah Hari Keterlambatan:</span> <span th:text="${jumlahHariTerlambat}">3</span> hari</div>
+            <div><span class="label">💰 Total Denda:</span> Rp <span th:text="${totalDenda}">3000</span></div>
+        </div>
+
+        <div th:if="${jumlahHariTerlambat == 0}">
+            <div><span style="color: green;">📌 Buku belum terlambat dikembalikan. Harap dikembalikan tepat waktu.</span></div>
+        </div>
+    </div>
+
+    <p>Terima kasih telah menggunakan layanan perpustakaan kami.</p>
+
+    <div class="signature">
+        Salam,<br>
+        <strong>Sistem Perpustakaan SMA Negeri 2 Plus Sipirok</strong>
+    </div>
+
+    <div class="footer">
+        Email ini dikirim secara otomatis oleh sistem. Mohon untuk tidak membalas email ini.
+    </div>
+</div>
+</body>
+</html>

@@ -1,5 +1,8 @@
 package com.api.perpustakaan.repository.transaction;
 
+import java.time.LocalDate;
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -24,6 +27,11 @@ public interface TransactionRepository extends JpaRepository<Transaction, Intege
 
     Page<Transaction> findByStatus(StatusConstant status, Pageable pageable);
 
+    List<Transaction> findByStatus(StatusConstant status);
     Page<Transaction> findAll(Pageable pageable);
+
+    List<Transaction> findByTanggalJatuhTempo(LocalDate tanggal);
+
+    List<Transaction> findByStatusAndTanggalJatuhTempoBefore(StatusConstant status, LocalDate tanggal);
 
 }
