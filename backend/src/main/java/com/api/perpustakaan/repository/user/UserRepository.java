@@ -22,4 +22,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     // Siswa
     List<User> findByRoleAndNisContainingIgnoreCase(RoleConstant role, String nis);
+    boolean existsByEmail(String email);
+    boolean existsByNis(String nis);
+
 }

@@ -11,6 +11,7 @@ import com.api.perpustakaan.dto.siswa.SiswaResponseDTO;
 public interface SiswaManagementService {
     SiswaResponseDTO createSiswa(SiswaRequestDTO request);
     SiswaResponseDTO updateSiswa(UUID id, SiswaRequestDTO request);
+    void updateStatusAktif(UUID siswaId, boolean isActive);
     void deleteSiswa(UUID id);
     List<SiswaResponseDTO> getAllSiswa();
     List<SiswaResponseDTO> searchSiswaByName(String name);

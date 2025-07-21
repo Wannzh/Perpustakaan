@@ -45,6 +45,9 @@ public class User {
     @Column(name = "role")
     private RoleConstant role;
 
+    @Column(name = "active")
+    private Boolean active;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 

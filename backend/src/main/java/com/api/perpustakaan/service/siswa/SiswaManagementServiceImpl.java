@@ -27,6 +27,12 @@ public class SiswaManagementServiceImpl implements SiswaManagementService {
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new RuntimeException("Username already exists");
         }
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new RuntimeException("Email already exists");
+        }
+        if (userRepository.existsByNis(request.getNis())) {
+            throw new RuntimeException("NIS already exists");
+        }
 
         User siswa = User.builder()
                 .name(request.getName())
@@ -36,6 +42,7 @@ public class SiswaManagementServiceImpl implements SiswaManagementService {
                 .nis(request.getNis())
                 .userClass(request.getUserClass())
                 .role(RoleConstant.SISWA)
+                .active(true) // default active
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
@@ -72,12 +79,14 @@ public class SiswaManagementServiceImpl implements SiswaManagementService {
 
     @Override
     public List<SiswaResponseDTO> searchSiswaByName(String name) {
-        return userRepository.findByRoleAndNameContainingIgnoreCase(RoleConstant.SISWA, name).stream().map(this::mapToResponse).toList();
+        return userRepository.findByRoleAndNameContainingIgnoreCase(RoleConstant.SISWA, name).stream()
+                .map(this::mapToResponse).toList();
     }
 
     @Override
     public List<SiswaResponseDTO> searchSiswaByNis(String nis) {
-        return userRepository.findByRoleAndNisContainingIgnoreCase(RoleConstant.SISWA, nis).stream().map(this::mapToResponse).toList();
+        return userRepository.findByRoleAndNisContainingIgnoreCase(RoleConstant.SISWA, nis).stream()
+                .map(this::mapToResponse).toList();
     }
 
     private SiswaResponseDTO mapToResponse(User u) {
@@ -89,6 +98,7 @@ public class SiswaManagementServiceImpl implements SiswaManagementService {
                 .nis(u.getNis())
                 .userClass(u.getUserClass())
                 .role(u.getRole())
+                .active(u.getActive())
                 .build();
     }
 
@@ -98,7 +108,8 @@ public class SiswaManagementServiceImpl implements SiswaManagementService {
             Sheet sheet = workbook.getSheetAt(0);
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
                 Row row = sheet.getRow(i);
-                if (row == null) continue;
+                if (row == null)
+                    continue;
 
                 String name = row.getCell(0).getStringCellValue();
                 String username = row.getCell(1).getStringCellValue();
@@ -107,7 +118,11 @@ public class SiswaManagementServiceImpl implements SiswaManagementService {
                 String nis = row.getCell(4).getStringCellValue();
                 String userClass = row.getCell(5).getStringCellValue();
 
-                if (userRepository.existsByUsername(username)) continue;
+                // Validasi unik
+                if (userRepository.existsByUsername(username) || userRepository.existsByEmail(email)
+                        || userRepository.existsByNis(nis)) {
+                    continue;
+                }
 
                 User siswa = User.builder()
                         .name(name)
@@ -117,6 +132,7 @@ public class SiswaManagementServiceImpl implements SiswaManagementService {
                         .nis(nis)
                         .userClass(userClass)
                         .role(RoleConstant.SISWA)
+                        .active(true) // siswa baru langsung active
                         .createdAt(LocalDateTime.now())
                         .updatedAt(LocalDateTime.now())
                         .build();
@@ -127,4 +143,19 @@ public class SiswaManagementServiceImpl implements SiswaManagementService {
             throw new RuntimeException("Failed to process file", e);
         }
     }
+
+    @Override
+    public void updateStatusAktif(UUID siswaId, boolean isActive) {
+        User siswa = userRepository.findById(siswaId)
+                .orElseThrow(() -> new RuntimeException("Siswa tidak ditemukan"));
+
+        if (siswa.getRole() != RoleConstant.SISWA) {
+            throw new RuntimeException("Hanya siswa yang dapat diaktif/nonaktifkan");
+        }
+
+        siswa.setActive(isActive);
+        siswa.setUpdatedAt(LocalDateTime.now());
+        userRepository.save(siswa);
+    }
+
 }

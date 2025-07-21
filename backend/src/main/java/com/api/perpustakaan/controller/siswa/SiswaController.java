@@ -77,4 +77,13 @@ public class SiswaController {
         siswaManagementService.uploadSiswaBatch(file);
         return ResponseEntity.ok("Upload batch siswa berhasil");
     }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<Void> updateAktifStatus(
+            @PathVariable UUID id,
+            @RequestParam boolean active
+    ) {
+        siswaManagementService.updateStatusAktif(id, active);
+        return ResponseEntity.ok().build();
+    }
 }

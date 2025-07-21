@@ -17,4 +17,5 @@ public class SiswaResponseDTO {
     private String nis;
     private String userClass;
     private RoleConstant role;
+    private Boolean active;
 }
