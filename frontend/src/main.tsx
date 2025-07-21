@@ -25,6 +25,7 @@ import ProfileSiswa from "./pages/siswa/ProfileSiswa";
 import SiswaControllerAdmin from "./pages/admin/SiswaControllerAdmin";
 import LoansBooksSiswa from "./pages/siswa/LoansBooksSiswa";
 import LoansBooksPustakawan from "./pages/perpustakawan/LoansBooksPustakawan";
+import BooksPengembalian from "./pages/perpustakawan/BooksPengembalian";
 
 const router = createBrowserRouter([
   {
@@ -86,6 +87,10 @@ const router = createBrowserRouter([
           {
             path: "loans-management",
             element: <LoansBooksPustakawan />
+          },
+          {
+            path: "pengembalian-management",
+            element: <BooksPengembalian />
           },
         ],
       },

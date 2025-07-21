@@ -1,6 +1,7 @@
 package com.api.perpustakaan.dto.peminjaman;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 import com.api.perpustakaan.constant.ReturnStatusConstant;
 import com.api.perpustakaan.constant.StatusConstant;
@@ -12,6 +13,7 @@ import lombok.Data;
 @Builder
 public class PeminjamanResponseDTO {
     private Integer id;
+    private UUID idSiswa;
     private String namaSiswa;
     private String judulBuku;
     private LocalDate tanggalPinjam;

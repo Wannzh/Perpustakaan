@@ -17,6 +17,11 @@ import com.api.perpustakaan.entity.Transaction;
 public interface TransactionRepository extends JpaRepository<Transaction, Integer> {
         int countByStatus(StatusConstant status);
 
+        @Query("SELECT COUNT(DISTINCT t.student.id) " +
+                        "FROM Transaction t " +
+                        "WHERE t.status = 'DIPINJAM' AND t.student.active = true")
+        int countDistinctActiveStudentsWithBooks();
+
         @Query("SELECT SUM(t.denda) FROM Transaction t WHERE t.denda > 0")
         Integer sumTotalDenda();
 

@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Configuration
 @RequiredArgsConstructor
@@ -25,6 +26,7 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         User admin = User.builder()
+                .id(UUID.randomUUID())
                 .name("Admin Perpustakaan")
                 .username(defaultUsername)
                 .password(passwordEncoder.encode("admin123"))

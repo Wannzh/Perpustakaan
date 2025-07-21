@@ -122,6 +122,9 @@ public class PeminjamanServiceImpl implements PeminjamanService {
             String sortBy, String direction) {
 
         Sort sort = direction.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
+        int totalBukuDipinjam = transactionRepository.countByStatus(StatusConstant.DIPINJAM);
+        int totalSiswaAktifMeminjam = transactionRepository.countDistinctActiveStudentsWithBooks();
+
         PageRequest pageable = PageRequest.of(page, size, sort);
 
         Page<Transaction> trxPage;
@@ -138,6 +141,7 @@ public class PeminjamanServiceImpl implements PeminjamanService {
 
         Page<PeminjamanResponseDTO> dtoPage = trxPage.map(trx -> PeminjamanResponseDTO.builder()
                 .id(trx.getId())
+                .idSiswa(trx.getStudent().getId())
                 .namaSiswa(trx.getStudent().getName())
                 .judulBuku(trx.getBook().getJudul())
                 .tanggalPinjam(trx.getTanggalPinjam())
@@ -150,6 +154,8 @@ public class PeminjamanServiceImpl implements PeminjamanService {
 
         return new PageResponse<>(
                 dtoPage.getContent(),
+                totalBukuDipinjam,
+                totalSiswaAktifMeminjam,
                 dtoPage.getNumber(),
                 dtoPage.getSize(),
                 dtoPage.getTotalElements(),

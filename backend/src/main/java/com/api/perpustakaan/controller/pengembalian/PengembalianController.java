@@ -7,6 +7,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
+import java.util.UUID;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,7 +32,7 @@ public class PengembalianController {
             HttpServletRequest servletRequest) {
 
         // Ambil userId dari JWT yang disimpan oleh JwtFilter
-        Integer siswaId = (Integer) servletRequest.getAttribute("userId");
+        UUID siswaId = (UUID) servletRequest.getAttribute("userId");
 
         if (siswaId == null) {
             return ResponseEntity.status(401).body("Unauthorized: userId tidak ditemukan dalam token.");

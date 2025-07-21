@@ -76,7 +76,7 @@ public class SpringSecurity {
                                                                 "/api/peminjaman/manual/**",
                                                                 "/api/pengembalian/manual/**",
                                                                 "/api/test/**")
-                                                .hasAuthority(RoleConstant.PUSTAKAWAN.name())
+                                                .hasAnyAuthority(RoleConstant.PUSTAKAWAN.name(),RoleConstant.SISWA.name())
 
                                                 // SISWA only
                                                 .requestMatchers(

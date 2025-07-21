@@ -3,6 +3,7 @@ package com.api.perpustakaan.service.pengembalian;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -109,7 +110,7 @@ public class PengembalianServiceImpl implements PengembalianService {
     }
 
     @Override
-    public ResponseEntity<?> kembalikanBukuMandiri(PengembalianRequestDTO request, Integer siswaId) {
+    public ResponseEntity<?> kembalikanBukuMandiri(PengembalianRequestDTO request, UUID siswaId) {
         if (request.getStatusPengembalian() == ReturnStatusConstant.RUSAK &&
                 (request.getCatatan() == null || request.getCatatan().isBlank())) {
             return ResponseEntity.badRequest().body("Catatan wajib diisi jika status pengembalian adalah RUSAK.");

@@ -15,6 +15,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -24,8 +25,8 @@ public class JwtFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+            HttpServletResponse response,
+            FilterChain filterChain) throws ServletException, IOException {
 
         try {
             String token = jwtUtil.resolveToken(request);
@@ -37,14 +38,14 @@ public class JwtFilter extends OncePerRequestFilter {
             Claims claims = jwtUtil.resolveClaims(request);
             if (claims != null && jwtUtil.validateClaims(claims)) {
                 String username = claims.get("username", String.class);
-                Integer userId = claims.get("userId", Integer.class);
+                String userIdString = claims.get("userId", String.class);
+                UUID userId = UUID.fromString(userIdString);
                 String role = claims.get("role", String.class);
 
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                         username,
                         null,
-                        Collections.singleton(new SimpleGrantedAuthority(role))
-                );
+                        Collections.singleton(new SimpleGrantedAuthority(role)));
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
