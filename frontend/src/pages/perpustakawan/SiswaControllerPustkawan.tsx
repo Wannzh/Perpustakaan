@@ -47,6 +47,7 @@ const SiswaControllerPustkawan: React.FC = () => {
         role: "SISWA",
         active: true, // Default to active
     });
+    console.log(siswaList);
     const [editSiswa, setEditSiswa] = useState<SiswaRequestDTO>({
         name: "",
         username: "",

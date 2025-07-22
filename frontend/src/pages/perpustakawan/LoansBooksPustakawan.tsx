@@ -1,8 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
-import { Plus, Save, X, CheckCircle, AlertCircle, Edit } from "lucide-react";
+import { Plus, Save, X, Edit } from "lucide-react";
 import { parse, isBefore, format } from "date-fns";
 import { id } from "date-fns/locale";
 
@@ -33,22 +31,15 @@ interface BookLoan {
 
 const API_BASE_URL = "http://localhost:8080";
 
-// Placeholder for ReturnStatusConstant; adjust based on actual backend enum
-const RETURN_STATUS_OPTIONS = ["DIKEMBALIKAN", "TERLAMBAT"];
 const RETURN_STATUS = ["NORMAL", "HILANG", "RUSAK"];
 
 const LoansBooksPustakawan: React.FC = () => {
     const [showAddForm, setShowAddForm] = useState<boolean>(false);
     const [showEditForm, setShowEditForm] = useState<boolean>(false);
-    const [showNotification, setShowNotification] = useState<boolean>(false);
-    const [isError, setIsError] = useState<boolean>(false);
+    const [addNotification, setAddNotification] = useState<{ show: boolean; message: string; isSuccess: boolean }>({ show: false, message: "", isSuccess: true });
+    const [editNotification, setEditNotification] = useState<{ show: boolean; message: string; isSuccess: boolean }>({ show: false, message: "", isSuccess: true });
     const [dataPeminjaman, setDataPeminjaman] = useState<BookLoan[]>([]);
-    const [notificationMessage, setNotificationMessage] = useState<string>("");
     const [loading, setLoading] = useState<boolean>(true);
-    const [popupMessage, setPopupMessage] = useState("");
-    const [popupError, setPopupError] = useState(false);
-    const [popupVisible, setPopupVisible] = useState(false);
-
     const [formLoading, setFormLoading] = useState<boolean>(false);
     const [newLoan, setNewLoan] = useState<PeminjamanRequestDTO>({
         siswaId: 0,
@@ -56,13 +47,9 @@ const LoansBooksPustakawan: React.FC = () => {
         tanggalPinjam: format(new Date(), "yyyy-MM-dd", { locale: id }),
         tanggalJatuhTempo: format(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), "yyyy-MM-dd", { locale: id }),
     });
-    const [editLoan, setEditLoan] = useState<{
-        transactionId: number;
-        statusPengembalian: string;
-        catatan?: string;
-    }>({
+    const [editLoan, setEditLoan] = useState<PengembalianRequestDTO>({
         transactionId: 0,
-        statusPengembalian: RETURN_STATUS_OPTIONS[0],
+        statusPengembalian: RETURN_STATUS[0],
         catatan: "",
     });
     const [errors, setErrors] = useState<Partial<Record<keyof PeminjamanRequestDTO | keyof PengembalianRequestDTO, string>>>({});
@@ -72,23 +59,28 @@ const LoansBooksPustakawan: React.FC = () => {
     }, []);
 
     useEffect(() => {
-        if (showNotification) {
+        if (addNotification.show) {
             const timer = setTimeout(() => {
-                setShowNotification(false);
-                setNotificationMessage("");
-                setIsError(false);
+                setAddNotification({ show: false, message: "", isSuccess: true });
             }, 3000);
             return () => clearTimeout(timer);
         }
-    }, [showNotification]);
+    }, [addNotification.show]);
+
+    useEffect(() => {
+        if (editNotification.show) {
+            const timer = setTimeout(() => {
+                setEditNotification({ show: false, message: "", isSuccess: true });
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [editNotification.show]);
 
     const fetchLoanList = async () => {
         try {
             const token = Cookies.get("authToken");
             if (!token) {
-                setNotificationMessage("Token tidak ditemukan di cookie");
-                setIsError(true);
-                setShowNotification(true);
+                setAddNotification({ show: true, message: "Token tidak ditemukan di cookie", isSuccess: false });
                 setLoading(false);
                 return;
             }
@@ -114,9 +106,7 @@ const LoansBooksPustakawan: React.FC = () => {
             setLoading(false);
         } catch (err) {
             console.error("Error fetching data peminjaman:", err);
-            setNotificationMessage("Terjadi kesalahan saat mengambil data");
-            setIsError(true);
-            setShowNotification(true);
+            setAddNotification({ show: true, message: err instanceof Error ? err.message : "Gagal mengambil data peminjaman", isSuccess: false });
             setLoading(false);
         }
     };
@@ -187,9 +177,7 @@ const LoansBooksPustakawan: React.FC = () => {
 
         const token = Cookies.get("authToken");
         if (!token) {
-            setNotificationMessage("Token tidak ditemukan di cookie");
-            setIsError(true);
-            setShowNotification(true);
+            setAddNotification({ show: true, message: "Token tidak ditemukan di cookie", isSuccess: false });
             return;
         }
 
@@ -217,14 +205,10 @@ const LoansBooksPustakawan: React.FC = () => {
                 tanggalJatuhTempo: format(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), "yyyy-MM-dd", { locale: id }),
             });
             setShowAddForm(false);
-            setNotificationMessage("Peminjaman berhasil ditambahkan");
-            setIsError(false);
-            setShowNotification(true);
+            setAddNotification({ show: true, message: "Peminjaman berhasil ditambahkan", isSuccess: true });
             fetchLoanList();
         } catch (err) {
-            setNotificationMessage(err instanceof Error ? err.message : "Terjadi kesalahan saat menambah peminjaman");
-            setIsError(true);
-            setShowNotification(true);
+            setAddNotification({ show: true, message: err instanceof Error ? err.message : "Terjadi kesalahan saat menambah peminjaman", isSuccess: false });
         } finally {
             setFormLoading(false);
         }
@@ -233,59 +217,61 @@ const LoansBooksPustakawan: React.FC = () => {
     const handleEditLoan = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // ✅ Validasi sebelum kirim
         if (!validateEditForm()) {
             return;
         }
 
         const token = Cookies.get("authToken");
         if (!token) {
-            setPopupMessage("Token tidak ditemukan. Silakan login kembali.");
-            setPopupError(true);
-            setPopupVisible(true);
+            setEditNotification({ show: true, message: "Token tidak ditemukan di cookie", isSuccess: false });
             return;
         }
 
         setFormLoading(true);
-
         try {
-            const response = await fetch(`http://localhost:8080/api/pengembalian/manual`, {
+            const response = await fetch(`${API_BASE_URL}/api/pengembalian/manual`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify(editLoan),
+                body: JSON.stringify({
+                    transactionId: editLoan.transactionId,
+                    statusPengembalian: editLoan.statusPengembalian,
+                    catatan: editLoan.catatan || undefined,
+                }),
             });
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
-                const errorMessage =
-                    errorData?.message || `Gagal mengedit pengembalian. Status: ${response.status}`;
+                const errorMessage = errorData?.message || `Gagal mengedit pengembalian. Status: ${response.status}`;
                 throw new Error(errorMessage);
             }
 
-            // Optional: Ambil response jika diperlukan
-            await response.json();
-
-            // Reset form dan tampilkan notifikasi sukses
+            const successMessage = "Pengembalian berhasil diperbarui";
+            console.log("Edit message:", successMessage);
+            localStorage.setItem("lastEditMessage", JSON.stringify({
+                message: successMessage,
+                timestamp: new Date().toISOString(),
+                transactionId: editLoan.transactionId
+            }));
             setEditLoan({
                 transactionId: 0,
-                statusPengembalian: RETURN_STATUS_OPTIONS[0],
+                statusPengembalian: RETURN_STATUS[0],
                 catatan: "",
             });
-
             setShowEditForm(false);
-            setPopupMessage("Data pengembalian berhasil diperbarui.");
-            setPopupError(false);
-            setPopupVisible(true);
-
-            // Optional: Refresh list jika ada
-            fetchLoanList?.();
-        } catch (err: any) {
-            setPopupMessage(err.message || "Terjadi kesalahan saat memperbarui pengembalian.");
-            setPopupError(true);
-            setPopupVisible(true);
+            setEditNotification({ show: true, message: successMessage, isSuccess: true });
+            fetchLoanList();
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : "Terjadi kesalahan saat mengedit pengembalian";
+            console.log("Edit error:", errorMessage);
+            localStorage.setItem("lastEditMessage", JSON.stringify({
+                message: errorMessage,
+                timestamp: new Date().toISOString(),
+                transactionId: editLoan.transactionId
+            }));
+            setEditNotification({ show: true, message: errorMessage, isSuccess: false });
         } finally {
             setFormLoading(false);
         }
@@ -295,11 +281,12 @@ const LoansBooksPustakawan: React.FC = () => {
         if (loan.status.toLowerCase() === "dipinjam") {
             setEditLoan({
                 transactionId: loan.id,
-                statusPengembalian: loan.statusPengembalian || RETURN_STATUS_OPTIONS[0],
-                catatan: "",
+                statusPengembalian: loan.statusPengembalian || RETURN_STATUS[0],
+                catatan: loan.statusPengembalian === "HILANG" || loan.statusPengembalian === "RUSAK" ? "Buku dalam kondisi tidak baik" : "",
             });
             setShowEditForm(true);
             setShowAddForm(false);
+            setErrors({});
         }
     };
 
@@ -313,14 +300,23 @@ const LoansBooksPustakawan: React.FC = () => {
                 <button
                     aria-label="Tambah Peminjaman Baru"
                     className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
-                    onClick={() => {
-                        setShowAddForm(!showAddForm);
-                        setShowEditForm(false);
-                    }}
+                    onClick={() => setShowAddForm(!showAddForm)}
                 >
                     <Plus className="w-4 h-4" /> {showAddForm ? "Tutup" : "Tambah Peminjaman"}
                 </button>
             </div>
+
+            {addNotification.show && (
+                <div className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg ${addNotification.isSuccess ? 'bg-green-500' : 'bg-red-500'} text-white transition-all duration-300`}>
+                    {addNotification.message}
+                </div>
+            )}
+
+            {editNotification.show && (
+                <div className={`fixed top-4 left-4 p-4 rounded-lg shadow-lg ${editNotification.isSuccess ? 'bg-blue-500' : 'bg-orange-500'} text-white transition-all duration-300`}>
+                    {editNotification.message}
+                </div>
+            )}
 
             {showAddForm && (
                 <div className="bg-white p-6 rounded-xl shadow-2xl mb-8 transform transition-all duration-300">
@@ -405,11 +401,16 @@ const LoansBooksPustakawan: React.FC = () => {
                             <Edit className="w-5 h-5" /> Edit Pengembalian
                         </h2>
                         <form onSubmit={handleEditLoan} className="grid grid-cols-1 gap-6">
-                            <input
-                                type="hidden"
-                                name="transactionId"
-                                value={editLoan.transactionId}
-                            />
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">ID Transaksi</label>
+                                <input
+                                    type="number"
+                                    name="transactionId"
+                                    value={editLoan.transactionId}
+                                    disabled
+                                    className="w-full p-3 border border-gray-300 rounded-lg bg-gray-100 shadow-sm"
+                                />
+                            </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Status Pengembalian</label>
                                 <select
@@ -419,6 +420,7 @@ const LoansBooksPustakawan: React.FC = () => {
                                     className={`w-full p-3 border ${errors.statusPengembalian ? "border-red-500" : "border-gray-300"} rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm transition`}
                                     required
                                 >
+                                    <option value="" disabled>Pilih Status</option>
                                     {RETURN_STATUS.map((status) => (
                                         <option key={status} value={status}>
                                             {status}
@@ -435,6 +437,7 @@ const LoansBooksPustakawan: React.FC = () => {
                                     value={editLoan.catatan || ""}
                                     onChange={handleEditInputChange}
                                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm transition"
+                                    placeholder="Masukkan catatan jika ada"
                                 />
                             </div>
                             <div className="flex gap-3">
@@ -448,38 +451,15 @@ const LoansBooksPustakawan: React.FC = () => {
                                 <button
                                     type="button"
                                     className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
-                                    onClick={() => setShowEditForm(false)}
+                                    onClick={() => {
+                                        setShowEditForm(false);
+                                        setErrors({});
+                                    }}
                                 >
                                     <X className="w-4 h-4" /> Batal
                                 </button>
                             </div>
                         </form>
-                    </div>
-                </div>
-            )}
-
-            {popupVisible && (
-                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center">
-                    <div
-                        className={`bg-white p-6 rounded-xl shadow-2xl max-w-md w-full transform transition-all duration-300 flex items-center gap-4 ${isError ? "border-l-4 border-red-600" : "border-l-4 border-green-600"}`}
-                    >
-                        {popupError ? (
-                            <AlertCircle className="w-8 h-8 text-red-600" />
-                        ) : (
-                            <CheckCircle className="w-8 h-8 text-green-600" />
-                        )}
-                        <div>
-                            <p className="text-gray-600">{popupMessage}</p>
-                            <button
-                                onClick={() => {
-                                    setShowNotification(false);
-                                    setIsError(false);
-                                }}
-                                className="mt-4 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
-                            >
-                                <X className="w-4 h-4" /> Tutup
-                            </button>
-                        </div>
                     </div>
                 </div>
             )}
@@ -528,8 +508,7 @@ const LoansBooksPustakawan: React.FC = () => {
                                         <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">{loan.tanggalKembali || "-"}</td>
                                         <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
                                             <button
-                                                className={`flex items-center gap-1 bg-amber-500 rounded-lg p-2 text-white ${loan.status.toLowerCase() !== "dipinjam" ? "opacity-50 cursor-not-allowed bg-gray-400" : "hover:bg-amber-600"
-                                                    } transition-colors duration-200`}
+                                                className={`flex items-center gap-1 bg-amber-500 rounded-lg p-2 text-white ${loan.status.toLowerCase() !== "dipinjam" ? "opacity-50 cursor-not-allowed bg-gray-400" : "hover:bg-amber-600"} transition-colors duration-200`}
                                                 onClick={() => handleShowEditForm(loan)}
                                                 disabled={loan.status.toLowerCase() !== "dipinjam"}
                                                 title={loan.status.toLowerCase() !== "dipinjam" ? "Hanya peminjaman dengan status 'dipinjam' yang dapat diedit" : "Edit Pengembalian"}

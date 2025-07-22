@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, Book, LogOut, Menu, X } from "lucide-react";
+import { LayoutDashboard, Users, Book, LogOut, Menu, X, BarChart2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Cookies from "js-cookie";
 
@@ -18,6 +18,7 @@ const SidebarPerpustakawan: React.FC = () => {
     { to: "siswa-management", label: "Siswa Management", icon: Users },
     { to: "books-management", label: "Books Controller", icon: Book },
     { to: "loans-management", label: "Loans Controller", icon: Book },
+    { to: "laporan-management", label: "Laporan", icon: BarChart2 },
   ];
 
   return (
@@ -69,12 +70,13 @@ const SidebarPerpustakawan: React.FC = () => {
             <NavLink
               key={i}
               to={to}
-              end={to === ""}  // ⬅️ Hanya untuk dashboard agar active saat path persis "/"
+              end={to === ""} // Hanya untuk dashboard agar active saat path persis "/"
               onClick={() => setIsOpen(false)}
               className={({ isActive }) =>
-                `group flex items-center gap-4 px-5 py-3 rounded-lg font-semibold text-sm transition-all duration-300 shadow hover:scale-[1.05] ${isActive
-                  ? "bg-gradient-to-r from-green-600 to-emerald-600 text-white"
-                  : "bg-gray-800 hover:bg-gradient-to-r hover:from-green-600 hover:to-emerald-600 hover:text-white"
+                `group flex items-center gap-4 px-5 py-3 rounded-lg font-semibold text-sm transition-all duration-300 shadow hover:scale-[1.05] ${
+                  isActive
+                    ? "bg-gradient-to-r from-green-600 to-emerald-600 text-white"
+                    : "bg-gray-800 hover:bg-gradient-to-r hover:from-green-600 hover:to-emerald-600 hover:text-white"
                 }`
               }
             >
@@ -83,7 +85,6 @@ const SidebarPerpustakawan: React.FC = () => {
             </NavLink>
           ))}
         </nav>
-
 
         {/* Logout */}
         <button

@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { BookOpen, Users, Book, LogOut, Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Cookies from "js-cookie";
+import { BarChart2 } from "lucide-react";
 
 const SidebarAdmin: React.FC = () => {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ const SidebarAdmin: React.FC = () => {
     { to: "pustakawan-management", label: "Perpustakawan", icon: BookOpen },
     { to: "siswa-management", label: "Siswa", icon: Users },
     { to: "books-management", label: "Buku", icon: Book },
+    { to: "laporan-management", label: "Laporan", icon: BarChart2 },
   ];
 
   return (
