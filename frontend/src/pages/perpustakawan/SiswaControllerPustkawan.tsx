@@ -11,6 +11,7 @@ interface Siswa {
     nis: string;
     userClass: string;
     role: string;
+    active: boolean; // Added status field
 }
 
 // Tipe data untuk SiswaRequestDTO
@@ -22,6 +23,7 @@ interface SiswaRequestDTO {
     nis: string;
     userClass: string;
     role: string;
+    active: boolean; // Added status field
 }
 
 const SiswaControllerPustkawan: React.FC = () => {
@@ -43,6 +45,7 @@ const SiswaControllerPustkawan: React.FC = () => {
         nis: "",
         userClass: "",
         role: "SISWA",
+        active: true, // Default to active
     });
     const [editSiswa, setEditSiswa] = useState<SiswaRequestDTO>({
         name: "",
@@ -52,6 +55,7 @@ const SiswaControllerPustkawan: React.FC = () => {
         nis: "",
         userClass: "",
         role: "SISWA",
+        active: true, // Default to active
     });
     const [editSiswaId, setEditSiswaId] = useState<number | null>(null);
     const [searchQuery, setSearchQuery] = useState<string>("");
@@ -139,6 +143,7 @@ const SiswaControllerPustkawan: React.FC = () => {
                 nis: "",
                 userClass: "",
                 role: "SISWA",
+                active: true,
             });
             setShowAddForm(false);
             setNotificationMessage("Siswa berhasil ditambahkan");
@@ -187,6 +192,7 @@ const SiswaControllerPustkawan: React.FC = () => {
                 nis: "",
                 userClass: "",
                 role: "SISWA",
+                active: true,
             });
             setEditSiswaId(null);
             setShowEditForm(false);
@@ -238,12 +244,12 @@ const SiswaControllerPustkawan: React.FC = () => {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
-        setNewSiswa((prev) => ({ ...prev, [name]: value }));
+        setNewSiswa((prev) => ({ ...prev, [name]: name === "active" ? value === "true" : value }));
     };
 
     const handleEditInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
-        setEditSiswa((prev) => ({ ...prev, [name]: value }));
+        setEditSiswa((prev) => ({ ...prev, [name]: name === "active" ? value === "true" : value }));
     };
 
     const openEditForm = (siswa: Siswa) => {
@@ -255,6 +261,7 @@ const SiswaControllerPustkawan: React.FC = () => {
             nis: siswa.nis,
             userClass: siswa.userClass,
             role: siswa.role,
+            active: siswa.active,
         });
         setEditSiswaId(siswa.id);
         setShowEditForm(true);
@@ -449,6 +456,19 @@ const SiswaControllerPustkawan: React.FC = () => {
                                 <option value="ADMIN">ADMIN</option>
                             </select>
                         </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                            <select
+                                name="active"
+                                value={newSiswa.active.toString()}
+                                onChange={handleInputChange}
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition"
+                                required
+                            >
+                                <option value="true">Aktif</option>
+                                <option value="false">Tidak Aktif</option>
+                            </select>
+                        </div>
                         <div className="col-span-1 md:col-span-2 flex gap-3">
                             <button
                                 type="submit"
@@ -551,6 +571,19 @@ const SiswaControllerPustkawan: React.FC = () => {
                             >
                                 <option value="SISWA">SISWA</option>
                                 <option value="ADMIN">ADMIN</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                            <select
+                                name="active"
+                                value={editSiswa.active.toString()}
+                                onChange={handleEditInputChange}
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm transition"
+                                required
+                            >
+                                <option value="true">Aktif</option>
+                                <option value="false">Tidak Aktif</option>
                             </select>
                         </div>
                         <div className="col-span-1 md:col-span-2 flex gap-3">
@@ -677,6 +710,14 @@ const SiswaControllerPustkawan: React.FC = () => {
                                     <p className="text-gray-900 font-semibold capitalize">{openInfoModal.role}</p>
                                 </div>
                             </div>
+
+                            <div className="flex items-start gap-3">
+                                <CheckCircle className="w-5 h-5 text-gray-500 mt-1" />
+                                <div>
+                                    <label className="block text-sm text-gray-500 mb-1">Status</label>
+                                    <p className="text-gray-900 font-semibold">{openInfoModal.active ? 'Aktif' : 'Tidak Aktif'}</p>
+                                </div>
+                            </div>
                         </div>
 
                         <div className="mt-8 flex justify-end">
@@ -690,7 +731,6 @@ const SiswaControllerPustkawan: React.FC = () => {
                     </div>
                 </div>
             )}
-
 
             {loading ? (
                 <div className="text-center text-gray-500 py-8">
@@ -709,6 +749,7 @@ const SiswaControllerPustkawan: React.FC = () => {
                                 <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">NIS</th>
                                 <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Kelas</th>
                                 <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Role</th>
+                                <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Status</th>
                                 <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Aksi</th>
                             </tr>
                         </thead>
@@ -738,6 +779,9 @@ const SiswaControllerPustkawan: React.FC = () => {
                                     </td>
                                     <td className="whitespace-nowrap text-xs text-gray-900 px-6 py-4 font-medium">
                                         {siswa.role}
+                                    </td>
+                                    <td className="whitespace-nowrap text-xs text-gray-900 px-6 py-4 font-medium">
+                                        {siswa.active ? 'Aktif' : 'Tidak Aktif'}
                                     </td>
                                     <td className="whitespace-nowrap text-xs text-gray-900 px-6 py-4 flex gap-2">
                                         <button
