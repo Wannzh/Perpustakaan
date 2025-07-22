@@ -1,7 +1,61 @@
-import React from 'react';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { useState, useEffect } from 'react';
 import { BookOpenIcon, MagnifyingGlassIcon, ComputerDesktopIcon } from '@heroicons/react/24/outline';
+import Cookies from 'js-cookie';
+
+interface BookPopular {
+  judulBuku: string;
+  totalDipinjam: number;
+}
 
 const SiswaDashboard: React.FC = () => {
+  const [booksPopular, setBooksPopular] = useState<BookPopular[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchBooksPopular = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const token = Cookies.get('authToken');
+
+      // Hitung tanggal sekarang dan 7 hari sebelumnya
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setDate(endDate.getDate() - 7);
+
+      // Format ke yyyy-MM-dd
+      const formatDate = (date: Date) => date.toISOString().split('T')[0];
+      const formattedStartDate = formatDate(startDate);
+      const formattedEndDate = formatDate(endDate);
+
+      const response = await fetch(`http://localhost:8080/api/laporan/buku-terpopuler?startDate=${formattedStartDate}&endDate=${formattedEndDate}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Gagal mengambil data buku - Status ${response.status}`);
+      }
+
+      const data: BookPopular[] = await response.json();
+      const sortedData = data.sort((a, b) => b.totalDipinjam - a.totalDipinjam).slice(0, 2);
+      setBooksPopular(sortedData);
+    } catch (err: any) {
+      setError(err.message || 'Terjadi kesalahan saat mengambil data buku');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch data on component mount
+  useEffect(() => {
+    fetchBooksPopular();
+  }, []);
+
   const features = [
     {
       name: 'Borrow Books',
@@ -37,6 +91,31 @@ const SiswaDashboard: React.FC = () => {
                 <p className="text-lg">Your gateway to knowledge and learning.</p>
               </div>
             </div>
+          </div>
+
+          {/* Popular Books Section */}
+          <div className="mt-12">
+            <h2 className="text-3xl font-bold text-gray-900">Most Popular Books</h2>
+            {loading ? (
+              <p className="mt-4 text-gray-600">Loading popular books...</p>
+            ) : error ? (
+              <p className="mt-4 text-red-600">{error}</p>
+            ) : booksPopular.length === 0 ? (
+              <p className="mt-4 text-gray-600">No popular books available.</p>
+            ) : (
+              <div className="mt-8 grid grid-cols-1 gap-8 sm:grid-cols-2">
+                {booksPopular.map((book) => (
+                  <div
+                    key={book.judulBuku}
+                    className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200"
+                  >
+                    <BookOpenIcon className="h-8 w-8 text-indigo-600 mb-4" />
+                    <h3 className="text-xl font-semibold text-gray-900">{book.judulBuku}</h3>
+                    <p className="mt-2 text-gray-600">Borrowed {book.totalDipinjam} times</p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* About Section */}

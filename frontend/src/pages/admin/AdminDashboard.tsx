@@ -41,6 +41,8 @@ const AdminDashboard: React.FC = () => {
     fetchBookList();
   }, []);
 
+  console.log(bookList)
+
   const fetchDataPustakawan = async () => {
     const token = Cookies.get("authToken");
     if (!token) {
@@ -103,7 +105,7 @@ const AdminDashboard: React.FC = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:8080/api/books", {
+      const response = await fetch("http://localhost:8080/api/books/get-all", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
