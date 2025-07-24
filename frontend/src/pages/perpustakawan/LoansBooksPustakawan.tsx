@@ -5,7 +5,7 @@ import { parse, isBefore, format } from "date-fns";
 import { id } from "date-fns/locale";
 
 interface PeminjamanRequestDTO {
-    siswaId: number;
+    siswaId: string;
     bukuId: number;
     tanggalPinjam: string;
     tanggalJatuhTempo: string;
@@ -42,7 +42,7 @@ const LoansBooksPustakawan: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [formLoading, setFormLoading] = useState<boolean>(false);
     const [newLoan, setNewLoan] = useState<PeminjamanRequestDTO>({
-        siswaId: 0,
+        siswaId: "",
         bukuId: 0,
         tanggalPinjam: format(new Date(), "yyyy-MM-dd", { locale: id }),
         tanggalJatuhTempo: format(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), "yyyy-MM-dd", { locale: id }),
@@ -113,7 +113,7 @@ const LoansBooksPustakawan: React.FC = () => {
 
     const validateAddForm = (): boolean => {
         const newErrors: Partial<Record<keyof PeminjamanRequestDTO, string>> = {};
-        if (newLoan.siswaId <= 0) {
+        if (newLoan.siswaId == "") {
             newErrors.siswaId = "ID Siswa harus lebih besar dari 0";
         }
         if (newLoan.bukuId <= 0) {
@@ -155,7 +155,7 @@ const LoansBooksPustakawan: React.FC = () => {
         const { name, value } = e.target;
         setNewLoan((prev) => ({
             ...prev,
-            [name]: name === "siswaId" || name === "bukuId" ? parseInt(value) || 0 : value,
+            [name]: name === "bukuId" ? parseInt(value) || 0 : value,
         }));
         setErrors((prev) => ({ ...prev, [name]: undefined }));
     };
@@ -199,7 +199,7 @@ const LoansBooksPustakawan: React.FC = () => {
 
             await response.json();
             setNewLoan({
-                siswaId: 0,
+                siswaId: "",
                 bukuId: 0,
                 tanggalPinjam: format(new Date(), "yyyy-MM-dd", { locale: id }),
                 tanggalJatuhTempo: format(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), "yyyy-MM-dd", { locale: id }),
@@ -313,7 +313,7 @@ const LoansBooksPustakawan: React.FC = () => {
             )}
 
             {editNotification.show && (
-                <div className={`fixed top-4 left-4 p-4 rounded-lg shadow-lg ${editNotification.isSuccess ? 'bg-blue-500' : 'bg-orange-500'} text-white transition-all duration-300`}>
+                <div className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg ${editNotification.isSuccess ? 'bg-blue-500' : 'bg-orange-500'} text-white transition-all duration-300`}>
                     {editNotification.message}
                 </div>
             )}
@@ -327,7 +327,7 @@ const LoansBooksPustakawan: React.FC = () => {
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">ID Siswa</label>
                             <input
-                                type="number"
+                                type="text"
                                 name="siswaId"
                                 value={newLoan.siswaId}
                                 onChange={handleInputChange}
