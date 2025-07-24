@@ -78,4 +78,9 @@ public interface TransactionRepository extends JpaRepository<Transaction, Intege
 
         List<Transaction> findByStatusAndTanggalJatuhTempoBefore(StatusConstant status, LocalDate tanggal);
 
+        @Query("SELECT t.book.judul, AVG(t.rating) as avgRating " +
+                        "FROM Transaction t WHERE t.rating IS NOT NULL " +
+                        "GROUP BY t.book.judul ORDER BY avgRating DESC")
+        List<Object[]> findTopRatedBooks();
+
 }

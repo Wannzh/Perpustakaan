@@ -77,13 +77,15 @@ public class SpringSecurity {
                                                                 "/api/peminjaman/manual/**",
                                                                 "/api/pengembalian/manual/**",
                                                                 "/api/test/**")
-                                                .hasAnyAuthority(RoleConstant.PUSTAKAWAN.name(),RoleConstant.SISWA.name())
+                                                .hasAnyAuthority(RoleConstant.PUSTAKAWAN.name(),
+                                                                RoleConstant.SISWA.name())
 
                                                 // SISWA only
                                                 .requestMatchers(
                                                                 "/api/peminjaman/self/**",
                                                                 "/api/pengembalian/self/**",
-                                                                "/api/notifications/**")
+                                                                "/api/notifications/**",
+                                                                "/api/laporan/top-rated-books")
                                                 .hasAuthority(RoleConstant.SISWA.name())
 
                                                 // KEPALA only

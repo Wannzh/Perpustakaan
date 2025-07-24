@@ -14,4 +14,6 @@ public interface PeminjamanService {
     PageResponse<PeminjamanResponseDTO> getAllPeminjamanForPustakawan(int page, int size, String keyword,
             StatusConstant status, String sortBy, String direction);
 
+    void giveRating(Integer transactionId, Integer rating, String username);
+
 }

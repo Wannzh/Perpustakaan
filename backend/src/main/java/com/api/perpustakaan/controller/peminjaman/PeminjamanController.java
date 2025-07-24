@@ -2,6 +2,8 @@ package com.api.perpustakaan.controller.peminjaman;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -14,6 +16,7 @@ import com.api.perpustakaan.dto.PageResponse;
 import com.api.perpustakaan.dto.peminjaman.PeminjamanRequestDTO;
 import com.api.perpustakaan.dto.peminjaman.PeminjamanRequestSelfDTO;
 import com.api.perpustakaan.dto.peminjaman.PeminjamanResponseDTO;
+import com.api.perpustakaan.dto.peminjaman.RatingRequestDTO;
 import com.api.perpustakaan.service.peminjaman.PeminjamanService;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -39,7 +42,8 @@ public class PeminjamanController {
             @RequestParam(required = false) StatusConstant status,
             @RequestParam(defaultValue = "tanggalPinjam") String sortBy,
             @RequestParam(defaultValue = "desc") String direction) {
-        return ResponseEntity.ok(peminjamanService.getAllPeminjamanForPustakawan(page, size, keyword, status, sortBy, direction));
+        return ResponseEntity
+                .ok(peminjamanService.getAllPeminjamanForPustakawan(page, size, keyword, status, sortBy, direction));
     }
 
     @PostMapping("/self/tambah")
@@ -48,4 +52,14 @@ public class PeminjamanController {
             @RequestAttribute("username") String username) {
         return ResponseEntity.ok(peminjamanService.createSelfPeminjaman(username, request));
     }
+
+    @PatchMapping("/{id}/rating")
+    public ResponseEntity<Void> giveRating(
+            @PathVariable Integer id,
+            @RequestBody RatingRequestDTO request,
+            @RequestAttribute("username") String username) {
+        peminjamanService.giveRating(id, request.getRating(), username);
+        return ResponseEntity.ok().build();
+    }
+
 }

@@ -54,13 +54,16 @@ public class Transaction {
 
     @Column(name = "denda_total")
     private Integer dendaTotal;
-    
+
     @Column(columnDefinition = "TEXT")
     private String catatan;
-    
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(name = "rating")
+    private Integer rating;
 }

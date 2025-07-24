@@ -32,8 +32,20 @@ public class SiswaController {
     }
 
     @PutMapping("/edit/{id}")
-    public ResponseEntity<SiswaResponseDTO> update(@PathVariable UUID id, @RequestBody SiswaRequestDTO request) {
-        return ResponseEntity.ok(siswaManagementService.updateSiswa(id, request));
+    public ResponseEntity<SiswaResponseDTO> update(
+            @PathVariable UUID id,
+            @RequestBody SiswaRequestDTO request,
+            @RequestParam(required = false) Boolean status) {
+
+        SiswaResponseDTO updatedSiswa = siswaManagementService.updateSiswa(id, request);
+
+        if (status != null) {
+            siswaManagementService.updateStatusAktif(id, status);
+            // Update nilai `active` agar response DTO menampilkan status baru
+            updatedSiswa.setActive(status);
+        }
+
+        return ResponseEntity.ok(updatedSiswa);
     }
 
     @DeleteMapping("/hapus/{id}")
@@ -57,23 +69,14 @@ public class SiswaController {
         return ResponseEntity.ok(siswaManagementService.searchSiswaByNis(nis));
     }
 
-    @Operation(
-        summary = "Upload siswa via file",
-        description = "Upload file Excel (.xlsx) atau CSV untuk menambahkan siswa secara massal"
-    )
+    @Operation(summary = "Upload siswa via file", description = "Upload file Excel (.xlsx) atau CSV untuk menambahkan siswa secara massal")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Upload berhasil"),
-        @ApiResponse(responseCode = "400", description = "Upload gagal")
+            @ApiResponse(responseCode = "200", description = "Upload berhasil"),
+            @ApiResponse(responseCode = "400", description = "Upload gagal")
     })
     @PostMapping(value = "/upload", consumes = "multipart/form-data")
-    public ResponseEntity<String> uploadBatch(@Parameter(
-            description = "File Excel (.xlsx) atau CSV",
-            required = true,
-            content = @Content(mediaType = "application/octet-stream",
-                schema = @Schema(type = "string", format = "binary"))
-        )
-        @RequestParam("file") MultipartFile file
-    ) {
+    public ResponseEntity<String> uploadBatch(
+            @Parameter(description = "File Excel (.xlsx) atau CSV", required = true, content = @Content(mediaType = "application/octet-stream", schema = @Schema(type = "string", format = "binary"))) @RequestParam("file") MultipartFile file) {
         siswaManagementService.uploadSiswaBatch(file);
         return ResponseEntity.ok("Upload batch siswa berhasil");
     }
@@ -81,8 +84,7 @@ public class SiswaController {
     @PatchMapping("/{id}/status")
     public ResponseEntity<Void> updateAktifStatus(
             @PathVariable UUID id,
-            @RequestParam boolean active
-    ) {
+            @RequestParam boolean active) {
         siswaManagementService.updateStatusAktif(id, active);
         return ResponseEntity.ok().build();
     }

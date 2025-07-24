@@ -163,4 +163,29 @@ public class PeminjamanServiceImpl implements PeminjamanService {
                 dtoPage.isLast());
     }
 
+    @Override
+    public void giveRating(Integer transactionId, Integer rating, String username) {
+        if (rating < 1 || rating > 5) {
+            throw new IllegalArgumentException("Rating must be between 1 and 5");
+        }
+
+        Transaction transaction = transactionRepository.findById(transactionId)
+                .orElseThrow(() -> new RuntimeException("Transaction not found"));
+
+        if (!transaction.getStatus().equals(StatusConstant.DIKEMBALIKAN)) {
+            throw new RuntimeException("Rating only allowed after the book is returned");
+        }
+
+        if (!transaction.getStudent().getUsername().equals(username)) {
+            throw new RuntimeException("You can only rate your own transaction");
+        }
+
+        if (transaction.getRating() != null) {
+            throw new RuntimeException("Rating has already been submitted for this transaction");
+        }
+
+        transaction.setRating(rating);
+        transactionRepository.save(transaction);
+    }
+
 }
