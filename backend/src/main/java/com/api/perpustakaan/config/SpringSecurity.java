@@ -47,6 +47,7 @@ public class SpringSecurity {
                                                                 "/configuration/ui",
                                                                 "/configuration/security",
                                                                 "/webjars/**",
+                                                                "/api/laporan/top-rated-books",
                                                                 "/api-docs/**",
                                                                 "/api-docs/swagger-config",
                                                                 "/api/auth/login")
@@ -85,7 +86,7 @@ public class SpringSecurity {
                                                                 "/api/peminjaman/self/**",
                                                                 "/api/pengembalian/self/**",
                                                                 "/api/notifications/**",
-                                                                "/api/laporan/top-rated-books")
+                                                                "/api/peminjaman/*/rating")
                                                 .hasAuthority(RoleConstant.SISWA.name())
 
                                                 // KEPALA only

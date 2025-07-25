@@ -14,7 +14,7 @@ public class CorsConfig {
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**") // Mengizinkan semua endpoint
                         .allowedOrigins("http://localhost:5173") // Mengizinkan akses dari semua domain
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") // Metode HTTP yang diizinkan
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH") // Metode HTTP yang diizinkan
                         .allowedHeaders("*") // Mengizinkan semua header
                         .allowCredentials(true); // Mengizinkan penggunaan kredensial (opsional)
             }

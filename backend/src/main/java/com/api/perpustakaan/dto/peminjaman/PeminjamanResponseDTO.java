@@ -22,4 +22,5 @@ public class PeminjamanResponseDTO {
     private StatusConstant status;
     private ReturnStatusConstant statusPengembalian;
     private Integer denda;
+    private Integer rating;
 }

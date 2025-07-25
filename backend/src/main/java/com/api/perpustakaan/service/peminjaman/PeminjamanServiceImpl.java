@@ -150,6 +150,7 @@ public class PeminjamanServiceImpl implements PeminjamanService {
                 .status(trx.getStatus())
                 .statusPengembalian(trx.getStatusKembali())
                 .denda(trx.getDenda())
+                .rating(trx.getRating())
                 .build());
 
         return new PageResponse<>(
@@ -184,6 +185,7 @@ public class PeminjamanServiceImpl implements PeminjamanService {
             throw new RuntimeException("Rating has already been submitted for this transaction");
         }
 
+        System.out.println("R0ating: " + rating);
         transaction.setRating(rating);
         transactionRepository.save(transaction);
     }
