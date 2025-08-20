@@ -9,9 +9,9 @@ const HeaderSiswa: React.FC = () => {
   const navigate = useNavigate();
 
   const navItems = [
-    { name: 'Profile', href: 'profile', icon: User },
     { name: 'Books', href: 'books-list', icon: Book },
     { name: 'Loans', href: 'loans', icon: FileText },
+    { name: 'Profile', href: 'profile', icon: User },
   ];
 
   useEffect(() => {

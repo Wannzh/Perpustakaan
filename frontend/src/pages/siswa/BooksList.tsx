@@ -11,6 +11,7 @@ import {
     XMarkIcon,
 } from "@heroicons/react/24/outline";
 
+// Add imageUrl to the Books interface
 interface Books {
     id: number;
     judul: string;
@@ -19,17 +20,23 @@ interface Books {
     kategori: string;
     jumlahEksemplar: number;
     stokTersedia: number;
+    imageUrl?: string; // Optional image URL for book cover
 }
 
 const BooksList: React.FC = () => {
     const [booksList, setBooksList] = useState<Books[]>([]);
-    const [filteredBooks, setFilteredBooks] = useState<Books[]>([]);
+    const [filteredBooks, setFilteredBooks] = useState<Books[]>(
+        []
+    );
     const [selectedBook, setSelectedBook] = useState<Books | null>(null);
     const [searchTerm, setSearchTerm] = useState<string>("");
     const [sortOption, setSortOption] = useState<string>("judul-asc");
     const [isBorrowing, setIsBorrowing] = useState<boolean>(false);
     const [borrowMessage, setBorrowMessage] = useState<string>("");
     const [showPopup, setShowPopup] = useState<boolean>(false);
+
+    // Placeholder image for books without an imageUrl
+    const placeholderImage = "https://via.placeholder.com/150x200?text=Book+Cover";
 
     const fetchBooks = async () => {
         const token = Cookies.get("authToken");
@@ -55,8 +62,13 @@ const BooksList: React.FC = () => {
             }
 
             const data: Books[] = await response.json();
-            setBooksList(data);
-            setFilteredBooks(data);
+            // Add placeholder image if imageUrl is not provided
+            const booksWithImages = data.map(book => ({
+                ...book,
+                imageUrl: book.imageUrl || placeholderImage
+            }));
+            setBooksList(booksWithImages);
+            setFilteredBooks(booksWithImages);
         } catch (err: any) {
             console.error("Error:", err);
             setBorrowMessage(`Error: Gagal mengambil data buku - ${err.message}`);
@@ -104,7 +116,7 @@ const BooksList: React.FC = () => {
             const result = await response.json();
             setBorrowMessage(`Buku berhasil dipinjam! Jatuh tempo: ${new Date(result.tanggalJatuhTempo).toLocaleDateString()}`);
             setBooksList(prevBooks =>
-                prevBooks.map(book =>
+               prevBooks.map(book =>
                     book.id === selectedBook.id
                         ? { ...book, jumlahEksemplar: book.jumlahEksemplar - 1 }
                         : book
@@ -191,7 +203,7 @@ const BooksList: React.FC = () => {
                     <input
                         type="text"
                         placeholder="Cari berdasarkan judul atau kategori..."
-                        className="w-full pl-10 pr-4 py-3 text-sm font-medium bg-white border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200"
+                        className="w-lg pl-10 pr-4 py-3 text-sm font-medium bg-white border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -218,48 +230,53 @@ const BooksList: React.FC = () => {
                     Tidak ada buku yang ditemukan
                 </div>
             ) : (
-                <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {filteredBooks.map((book, index) => (
                         <div
                             key={book.id}
-                            className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 animate-fade-in-up"
+                            className="bg-white rounded-xl border border-gray-100 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 animate-fade-in-up"
                             style={{ animationDelay: `${index * 100}ms` }}
                         >
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between">
-                                <div className="flex-1">
-                                    <h3 className="text-xl font-bold text-gray-800 mb-3 line-clamp-1">
-                                        {book.judul}
-                                    </h3>
-                                    <div className="space-y-2 text-sm text-gray-600">
-                                        <div className="flex items-center">
-                                            <BuildingLibraryIcon className="h-4 w-4 mr-2 text-indigo-500" />
-                                            <span className="font-medium">Penerbit:</span>
-                                            <span className="ml-1">{book.penerbit}</span>
-                                        </div>
-                                        <div className="flex items-center">
-                                            <CalendarIcon className="h-4 w-4 mr-2 text-indigo-500" />
-                                            <span className="font-medium">Tahun Terbit:</span>
-                                            <span className="ml-1">{book.tahunTerbit}</span>
-                                        </div>
-                                        <div className="flex items-center">
-                                            <TagIcon className="h-4 w-4 mr-2 text-indigo-500" />
-                                            <span className="font-medium">Kategori:</span>
-                                            <span className="ml-1">{book.kategori}</span>
-                                        </div>
-                                        <div className="flex items-center">
-                                            <BookOpenIcon className="h-4 w-4 mr-2 text-indigo-500" />
-                                            <span className="font-medium">Jumlah Eksemplar:</span>
-                                            <span className="ml-1">{book.jumlahEksemplar}</span>
-                                        </div>
-                                        <div className="flex items-center">
-                                            <BookOpenIcon className="h-4 w-4 mr-2 text-indigo-500" />
-                                            <span className="font-medium">Stok buku:</span>
-                                            <span className="ml-1">{book.stokTersedia}</span>
-                                        </div>
+                            <div className="relative">
+                                <img
+                                    src={book.imageUrl}
+                                    alt={book.judul}
+                                    className="w-full h-48 object-cover rounded-t-xl"
+                                />
+                                {book.jumlahEksemplar === 0 && (
+                                    <span className="absolute top-2 right-2 bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded-full">
+                                        Stok Habis
+                                    </span>
+                                )}
+                            </div>
+                            <div className="p-4">
+                                <h3 className="text-lg font-bold text-gray-800 mb-2 line-clamp-2">
+                                    {book.judul}
+                                </h3>
+                                <div className="space-y-1 text-sm text-gray-600">
+                                    <div className="flex items-center">
+                                        <BuildingLibraryIcon className="h-4 w-4 mr-2 text-indigo-500" />
+                                        <span>{book.penerbit}</span>
+                                    </div>
+                                    <div className="flex items-center">
+                                        <CalendarIcon className="h-4 w-4 mr-2 text-indigo-500" />
+                                        <span>{book.tahunTerbit}</span>
+                                    </div>
+                                    <div className="flex items-center">
+                                        <TagIcon className="h-4 w-4 mr-2 text-indigo-500" />
+                                        <span>{book.kategori}</span>
+                                    </div>
+                                    <div className="flex items-center">
+                                        <BookOpenIcon className="h-4 w-4 mr-2 text-indigo-500" />
+                                        <span>{book.jumlahEksemplar} eksemplar</span>
+                                    </div>
+                                    <div className="flex items-center">
+                                        <BookOpenIcon className="h-4 w-4 mr-2 text-indigo-500" />
+                                        <span>{book.stokTersedia} stok tersedia</span>
                                     </div>
                                 </div>
                                 <button
-                                    className="mt-4 sm:mt-0 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white py-2 px-6 rounded-lg hover:from-indigo-700 hover:to-indigo-800 transition-all duration-200 transform hover:scale-105 sm:ml-6 shadow-sm"
+                                    className="mt-4 w-full bg-gradient-to-r from-indigo-600 to-indigo-700 text-white py-2 px-4 rounded-lg hover:from-indigo-700 hover:to-indigo-800 transition-all duration-200 transform hover:scale-105 shadow-sm"
                                     onClick={() => openModal(book)}
                                 >
                                     Lihat Detail
@@ -276,11 +293,13 @@ const BooksList: React.FC = () => {
                     onClick={closeModal}
                 >
                     <div
-                        className="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full mx-4 transform transition-all duration-300 animate-modal-in"
+                        className="bg-white rounded-2xl shadow-2xl p-6 max-w-lg w-full mx-4 transform transition-all duration-300 animate-modal-in"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="flex justify-between items-center mb-5">
-                            <h2 className="text-2xl font-bold text-gray-800">{selectedBook.judul}</h2>
+                            <h2 className="text-2xl font-bold text-gray-800 line-clamp-2">
+                                {selectedBook.judul}
+                            </h2>
                             <button
                                 className="text-gray-500 hover:text-gray-700 transition-colors duration-200 transform hover:scale-110"
                                 onClick={closeModal}
@@ -288,26 +307,33 @@ const BooksList: React.FC = () => {
                                 <XMarkIcon className="h-6 w-6" />
                             </button>
                         </div>
-                        <div className="space-y-4 text-sm text-gray-600">
-                            <div className="flex items-center">
-                                <BuildingLibraryIcon className="h-5 w-5 mr-2 text-indigo-500" />
-                                <span className="font-medium">Penerbit:</span>
-                                <span className="ml-1">{selectedBook.penerbit}</span>
-                            </div>
-                            <div className="flex items-center">
-                                <CalendarIcon className="h-5 w-5 mr-2 text-indigo-500" />
-                                <span className="font-medium">Tahun Terbit:</span>
-                                <span className="ml-1">{selectedBook.tahunTerbit}</span>
-                            </div>
-                            <div className="flex items-center">
-                                <TagIcon className="h-5 w-5 mr-2 text-indigo-500" />
-                                <span className="font-medium">Kategori:</span>
-                                <span className="ml-1">{selectedBook.kategori}</span>
-                            </div>
-                            <div className="flex items-center">
-                                <BookOpenIcon className="h-5 w-5 mr-2 text-indigo-500" />
-                                <span className="font-medium">Jumlah Eksemplar:</span>
-                                <span className="ml-1">{selectedBook.jumlahEksemplar}</span>
+                        <div className="flex flex-col sm:flex-row gap-4">
+                            <img
+                                src={selectedBook.imageUrl}
+                                alt={selectedBook.judul}
+                                className="w-full sm:w-1/3 h-48 object-cover rounded-lg"
+                            />
+                            <div className="flex-1 space-y-4 text-sm text-gray-600">
+                                <div className="flex items-center">
+                                    <BuildingLibraryIcon className="h-5 w-5 mr-2 text-indigo-500" />
+                                    <span className="font-medium">Penerbit:</span>
+                                    <span className="ml-1">{selectedBook.penerbit}</span>
+                                </div>
+                                <div className="flex items-center">
+                                    <CalendarIcon className="h-5 w-5 mr-2 text-indigo-500" />
+                                    <span className="font-medium">Tahun Terbit:</span>
+                                    <span className="ml-1">{selectedBook.tahunTerbit}</span>
+                                </div>
+                                <div className="flex items-center">
+                                    <TagIcon className="h-5 w-5 mr-2 text-indigo-500" />
+                                    <span className="font-medium">Kategori:</span>
+                                    <span className="ml-1">{selectedBook.kategori}</span>
+                                </div>
+                                <div className="flex items-center">
+                                    <BookOpenIcon className="h-5 w-5 mr-2 text-indigo-500" />
+                                    <span className="font-medium">Jumlah Eksemplar:</span>
+                                    <span className="ml-1">{selectedBook.jumlahEksemplar}</span>
+                                </div>
                             </div>
                         </div>
                         <div className="mt-6">
@@ -331,7 +357,7 @@ const BooksList: React.FC = () => {
                     onClick={closePopup}
                 >
                     <div
-                        className="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full mx-4 transform transition-all duration-300 animate-modal-in"
+                        className="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full mw-4 transform transition-all duration-300 animate-modal-in"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="flex justify-between items-center mb-4">

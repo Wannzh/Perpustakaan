@@ -343,184 +343,188 @@ const PustakawanController: React.FC = () => {
                     </button>
                     <button
                         className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
-                        onClick={() => setShowAddForm(!showAddForm)}
+                        onClick={() => setShowAddForm(true)}
                     >
-                        <Plus className="w-4 h-4" /> {showAddForm ? "Tutup" : "Tambah Pustakawan"}
+                        <Plus className="w-4 h-4" /> Tambah Pustakawan
                     </button>
                 </div>
             </div>
 
             {showAddForm && (
-                <div className="bg-white p-6 rounded-xl shadow-2xl mb-8 transform transition-all duration-300">
-                    <h2 className="text-xl font-semibold mb-6 flex items-center gap-2 text-indigo-700">
-                        <Plus className="w-5 h-5" /> Tambah Pustakawan Baru
-                    </h2>
-                    <form onSubmit={handleAddPustakawan} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Nama</label>
-                            <input
-                                type="text"
-                                name="name"
-                                value={newPustakawan.name}
-                                onChange={handleInputChange}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition"
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
-                            <input
-                                type="text"
-                                name="username"
-                                value={newPustakawan.username}
-                                onChange={handleInputChange}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition"
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                            <input
-                                type="password"
-                                name="password"
-                                value={newPustakawan.password}
-                                onChange={handleInputChange}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition"
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                            <input
-                                type="email"
-                                name="email"
-                                value={newPustakawan.email}
-                                onChange={handleInputChange}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition"
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">NIP</label>
-                            <input
-                                type="text"
-                                name="nip"
-                                value={newPustakawan.nip}
-                                onChange={handleInputChange}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition"
-                                required
-                            />
-                        </div>
-                        <div className="col-span-1 md:col-span-2 flex gap-3">
-                            <button
-                                type="submit"
-                                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
-                            >
-                                <Save className="w-4 h-4" /> Simpan
-                            </button>
-                            <button
-                                type="button"
-                                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
-                                onClick={() => setShowAddForm(false)}
-                            >
-                                <X className="w-4 h-4" /> Batal
-                            </button>
-                        </div>
-                    </form>
+                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+                    <div className="bg-white p-8 rounded-2xl shadow-2xl max-w-lg w-full transform transition-all duration-300 scale-100 border border-gray-200">
+                        <h2 className="text-xl font-semibold mb-6 flex items-center gap-2 text-indigo-700">
+                            <Plus className="w-5 h-5" /> Tambah Pustakawan Baru
+                        </h2>
+                        <form onSubmit={handleAddPustakawan} className="grid grid-cols-1 gap-6">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Nama</label>
+                                <input
+                                    type="text"
+                                    name="name"
+                                    value={newPustakawan.name}
+                                    onChange={handleInputChange}
+                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                                <input
+                                    type="text"
+                                    name="username"
+                                    value={newPustakawan.username}
+                                    onChange={handleInputChange}
+                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                                <input
+                                    type="password"
+                                    name="password"
+                                    value={newPustakawan.password}
+                                    onChange={handleInputChange}
+                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                <input
+                                    type="email"
+                                    name="email"
+                                    value={newPustakawan.email}
+                                    onChange={handleInputChange}
+                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">NIP</label>
+                                <input
+                                    type="text"
+                                    name="nip"
+                                    value={newPustakawan.nip}
+                                    onChange={handleInputChange}
+                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition"
+                                    required
+                                />
+                            </div>
+                            <div className="flex gap-3 justify-end">
+                                <button
+                                    type="submit"
+                                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
+                                >
+                                    <Save className="w-4 h-4" /> Simpan
+                                </button>
+                                <button
+                                    type="button"
+                                    className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
+                                    onClick={() => setShowAddForm(false)}
+                                >
+                                    <X className="w-4 h-4" /> Batal
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             )}
 
             {showEditForm && (
-                <div className="bg-white p-6 rounded-xl shadow-2xl mb-8 transform transition-all duration-300">
-                    <h2 className="text-xl font-semibold mb-6 flex items-center gap-2 text-amber-700">
-                        <Edit className="w-5 h-5" /> Edit Pustakawan
-                    </h2>
-                    <form onSubmit={handleEditPustakawan} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Nama</label>
-                            <input
-                                type="text"
-                                name="name"
-                                value={editPustakawan.name}
-                                onChange={handleEditInputChange}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm transition"
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
-                            <input
-                                type="text"
-                                name="username"
-                                value={editPustakawan.username}
-                                onChange={handleEditInputChange}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm transition"
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Password (Kosongkan jika tidak diubah)</label>
-                            <input
-                                type="password"
-                                name="password"
-                                value={editPustakawan.password}
-                                onChange={handleEditInputChange}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm transition"
-                                placeholder="Masukkan password baru jika ingin mengubah"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                            <input
-                                type="email"
-                                name="email"
-                                value={editPustakawan.email}
-                                onChange={handleEditInputChange}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm transition"
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">NIP</label>
-                            <input
-                                type="text"
-                                name="nip"
-                                value={editPustakawan.nip}
-                                onChange={handleEditInputChange}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm transition"
-                                required
-                            />
-                        </div>
-                        <div className="col-span-1 md:col-span-2 flex gap-3">
-                            <button
-                                type="submit"
-                                className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
-                            >
-                                <Save className="w-4 h-4" /> Update
-                            </button>
-                            <button
-                                type="button"
-                                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
-                                onClick={() => {
-                                    setShowEditForm(false);
-                                    setEditPustakawanId(null);
-                                }}
-                            >
-                                <X className="w-4 h-4" /> Batal
-                            </button>
-                        </div>
-                    </form>
+                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+                    <div className="bg-white p-8 rounded-2xl shadow-2xl max-w-lg w-full transform transition-all duration-300 scale-100 border border-gray-200">
+                        <h2 className="text-xl font-semibold mb-6 flex items-center gap-2 text-amber-700">
+                            <Edit className="w-5 h-5" /> Edit Pustakawan
+                        </h2>
+                        <form onSubmit={handleEditPustakawan} className="grid grid-cols-1 gap-6">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Nama</label>
+                                <input
+                                    type="text"
+                                    name="name"
+                                    value={editPustakawan.name}
+                                    onChange={handleEditInputChange}
+                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm transition"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                                <input
+                                    type="text"
+                                    name="username"
+                                    value={editPustakawan.username}
+                                    onChange={handleEditInputChange}
+                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm transition"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Password (Kosongkan jika tidak diubah)</label>
+                                <input
+                                    type="password"
+                                    name="password"
+                                    value={editPustakawan.password}
+                                    onChange={handleEditInputChange}
+                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm transition"
+                                    placeholder="Masukkan password baru jika ingin mengubah"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                <input
+                                    type="email"
+                                    name="email"
+                                    value={editPustakawan.email}
+                                    onChange={handleEditInputChange}
+                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm transition"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">NIP</label>
+                                <input
+                                    type="text"
+                                    name="nip"
+                                    value={editPustakawan.nip}
+                                    onChange={handleEditInputChange}
+                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm transition"
+                                    required
+                                />
+                            </div>
+                            <div className="flex gap-3 justify-end">
+                                <button
+                                    type="submit"
+                                    className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
+                                >
+                                    <Save className="w-4 h-4" /> Update
+                                </button>
+                                <button
+                                    type="button"
+                                    className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
+                                    onClick={() => {
+                                        setShowEditForm(false);
+                                        setEditPustakawanId(null);
+                                    }}
+                                >
+                                    <X className="w-4 h-4" /> Batal
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             )}
 
             {showDeleteModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center">
+                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
                     <div className="bg-white p-6 rounded-xl shadow-2xl max-w-md w-full transform transition-all duration-300 scale-100">
                         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2 text-red-700">
                             <Trash2 className="w-5 h-5" /> Konfirmasi Hapus
                         </h2>
                         <p className="mb-6 text-gray-600">Apakah Anda yakin ingin menghapus pustakawan ini?</p>
-                        <div className="flex gap-3">
+                        <div className="flex gap-3 justify-end">
                             <button
                                 onClick={handleDeletePustakawan}
                                 className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
@@ -539,7 +543,7 @@ const PustakawanController: React.FC = () => {
             )}
 
             {showNotification && (
-                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center">
+                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
                     <div className={`bg-white p-6 rounded-xl shadow-2xl max-w-md w-full transform transition-all duration-300 ${isError ? 'border-l-4 border-red-600' : 'border-l-4 border-green-600'}`}>
                         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                             {isError ? (
@@ -550,12 +554,14 @@ const PustakawanController: React.FC = () => {
                             {isError ? "Error" : "Sukses"}
                         </h2>
                         <p className="mb-6 text-gray-600">{notificationMessage}</p>
-                        <button
-                            onClick={() => setShowNotification(false)}
-                            className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
-                        >
-                            <X className="w-4 h-4" /> Tutup
-                        </button>
+                        <div className="flex justify-end">
+                            <button
+                                onClick={() => setShowNotification(false)}
+                                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
+                            >
+                                <X className="w-4 h-4" /> Tutup
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
@@ -566,16 +572,15 @@ const PustakawanController: React.FC = () => {
                         <h2 className="text-xl font-bold mb-6 flex items-center gap-3 text-blue-700">
                             <Info className="w-6 h-6" /> Detail Pustakawan
                         </h2>
-
                         <div className="space-y-5">
                             <div className="flex items-start gap-3">
                                 <User className="w-5 h-5 text-gray-500 mt-1" />
                                 <div>
-                                    <label className="block text-sm text-gray-500 mb-1">Nama</label>
+                                    <label className="block t
+ext-sm text-gray-500 mb-1">Nama</label>
                                     <p className="text-gray-900 font-semibold">{openInfoModal.name}</p>
                                 </div>
                             </div>
-
                             <div className="flex items-start gap-3">
                                 <User className="w-5 h-5 text-gray-500 mt-1" />
                                 <div>
@@ -583,7 +588,6 @@ const PustakawanController: React.FC = () => {
                                     <p className="text-gray-900 font-semibold">{openInfoModal.username}</p>
                                 </div>
                             </div>
-
                             <div className="flex items-start gap-3">
                                 <Mail className="w-5 h-5 text-gray-500 mt-1" />
                                 <div>
@@ -591,7 +595,6 @@ const PustakawanController: React.FC = () => {
                                     <p className="text-gray-900 font-semibold">{openInfoModal.email}</p>
                                 </div>
                             </div>
-
                             <div className="flex items-start gap-3">
                                 <BadgeInfo className="w-5 h-5 text-gray-500 mt-1" />
                                 <div>
@@ -600,7 +603,6 @@ const PustakawanController: React.FC = () => {
                                 </div>
                             </div>
                         </div>
-
                         <div className="mt-8 flex justify-end">
                             <button
                                 onClick={() => setOpenInfoModal(null)}
@@ -613,80 +615,80 @@ const PustakawanController: React.FC = () => {
                 </div>
             )}
 
-
-            {loading ? (
-                <div className="text-center text-gray-500 py-8">
-                    <div className="animate-spin inline-block w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full"></div>
-                    <p className="mt-2 font-medium">Memuat data pustakawan...</p>
-                </div>
-            ) : (
-                <div className="bg-white rounded-xl shadow-2xl overflow-hidden cursor-pointer">
-                    <table className="min-w-full table-auto">
-                        <thead className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white">
-                            <tr>
-                                <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">No</th>
-                                <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Nama</th>
-                                <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Username</th>
-                                <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Email</th>
-                                <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">NIP</th>
-                                <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {pustakawanList.length === 0 ? (
-                                 <tr>
-                                 <td colSpan={7} className="px-6 py-4 text-center text-sm text-gray-500">
-                                     Tidak ada data siswa ditemukan
-                                 </td>
-                             </tr>
-                            ) : (
-                            
-                            pustakawanList.map((pustakawan, index) => (
-                                <tr
-                                    key={pustakawan.id}
-                                    className={`${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} hover:bg-indigo-50 transition-all duration-200 transform hover:shadow-md`}
-                                >
-                                    <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
-                                        {index + 1}
-                                    </td>
-                                    <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
-                                        {pustakawan.name}
-                                    </td>
-                                    <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
-                                        {pustakawan.username}
-                                    </td>
-                                    <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
-                                        {pustakawan.email}
-                                    </td>
-                                    <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
-                                        {pustakawan.nip}
-                                    </td>
-                                    <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 flex gap-2">
-                                        <button
-                                            className="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1 rounded-lg flex items-center gap-1 shadow-sm transition-transform transform hover:scale-105 cursor-pointer"
-                                            onClick={() => openEditForm(pustakawan)}
-                                        >
-                                            <Edit className="w-4 h-4" />
-                                        </button>
-                                        <button
-                                            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg flex items-center gap-1 shadow-sm transition-transform transform hover:scale-105 cursor-pointer"
-                                            onClick={() => openDeleteModal(pustakawan.id)}
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
-                                        <button
-                                            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg flex items-center gap-1 shadow-sm transition-transform transform hover:scale-105 cursor-pointer"
-                                            onClick={() => setOpenInfoModal(pustakawan)}
-                                        >
-                                            <Info className="w-4 h-4" />
-                                        </button>
-                                    </td>
+            {!showAddForm && !showEditForm && !showDeleteModal && !showNotification && !openInfoModal && (
+                loading ? (
+                    <div className="text-center text-gray-500 py-8">
+                        <div className="animate-spin inline-block w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full"></div>
+                        <p className="mt-2 font-medium">Memuat data pustakawan...</p>
+                    </div>
+                ) : (
+                    <div className="bg-white rounded-xl shadow-2xl overflow-hidden cursor-pointer">
+                        <table className="min-w-full table-auto">
+                            <thead className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white">
+                                <tr>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">No</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Nama</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Username</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Email</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">NIP</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Aksi</th>
                                 </tr>
-                            ))
-                        )}
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                                {pustakawanList.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">
+                                            Tidak ada data pustakawan ditemukan
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    pustakawanList.map((pustakawan, index) => (
+                                        <tr
+                                            key={pustakawan.id}
+                                            className={`${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} hover:bg-indigo-50 transition-all duration-200 transform hover:shadow-md`}
+                                        >
+                                            <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
+                                                {index + 1}
+                                            </td>
+                                            <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
+                                                {pustakawan.name}
+                                            </td>
+                                            <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
+                                                {pustakawan.username}
+                                            </td>
+                                            <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
+                                                {pustakawan.email}
+                                            </td>
+                                            <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
+                                                {pustakawan.nip}
+                                            </td>
+                                            <td className="whitespace-nowrap.obreak text-sm text-gray-900 px-6 py-4 flex gap-2">
+                                                <button
+                                                    className="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1 rounded-lg flex items-center gap-1 shadow-sm transition-transform transform hover:scale-105 cursor-pointer"
+                                                    onClick={() => openEditForm(pustakawan)}
+                                                >
+                                                    <Edit className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg flex items-center gap-1 shadow-sm transition-transform transform hover:scale-105 cursor-pointer"
+                                                    onClick={() => openDeleteModal(pustakawan.id)}
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg flex items-center gap-1 shadow-sm transition-transform transform hover:scale-105 cursor-pointer"
+                                                    onClick={() => setOpenInfoModal(pustakawan)}
+                                                >
+                                                    <Info className="w-4 h-4" />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                )
             )}
         </div>
     );

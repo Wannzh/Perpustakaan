@@ -49,6 +49,14 @@ const BooksControllerPustakawan: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState<string>("");
     const [searchType, setSearchType] = useState<"judul" | "kategori">("judul");
 
+    const categories = [
+        "Fiksi",
+        "Non-Fiksi",
+        "Literatur Anak & Remaja",
+        "Praktis & Hobi",
+        "Referensi"
+    ];
+
     useEffect(() => {
         fetchBookList();
     }, []);
@@ -114,8 +122,8 @@ const BooksControllerPustakawan: React.FC = () => {
 
         const endpoint =
             searchType === "judul"
-                ? `http://localhost:8080/api/books/search?judul=${encodeURIComponent(searchTerm)}`
-                : `http://localhost:8080/api/books/search?kategori=${encodeURIComponent(searchTerm)}`;
+                ? `http://localhost:8080/api/books/search/judul?judul=${encodeURIComponent(searchTerm)}`
+                : `http://localhost:8080/api/books/search/kategori?kategori=${encodeURIComponent(searchTerm)}`;
 
         try {
             setLoading(true);
@@ -278,12 +286,12 @@ const BooksControllerPustakawan: React.FC = () => {
         setShowAddForm(false);
     };
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setNewBook((prev) => ({ ...prev, [name]: name === "tahunTerbit" || name === "jumlahEksemplar" ? parseInt(value) || 0 : value }));
     };
 
-    const handleEditInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleEditInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setEditBook((prev) => ({ ...prev, [name]: name === "tahunTerbit" || name === "jumlahEksemplar" ? parseInt(value) || 0 : value }));
     };
@@ -332,185 +340,201 @@ const BooksControllerPustakawan: React.FC = () => {
                     <button
                         className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
                         onClick={() => {
-                            setShowAddForm(!showAddForm);
+                            setShowAddForm(true);
                             setShowEditForm(false);
                         }}
                     >
-                        <Plus className="w-4 h-4" /> {showAddForm ? "Tutup" : "Tambah Buku"}
+                        <Plus className="w-4 h-4" /> Tambah Buku
                     </button>
                 </div>
             </div>
 
             {showAddForm && (
-                <div className="bg-white p-6 rounded-xl shadow-2xl mb-8 transform transition-all duration-300">
-                    <h2 className="text-xl font-semibold mb-6 flex items-center gap-2 text-indigo-700">
-                        <Plus className="w-5 h-5" /> Tambah Buku Baru
-                    </h2>
-                    <form onSubmit={handleAddBook} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Judul Buku</label>
-                            <input
-                                type="text"
-                                name="judul"
-                                value={newBook.judul}
-                                onChange={handleInputChange}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition"
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Penerbit</label>
-                            <input
-                                type="text"
-                                name="penerbit"
-                                value={newBook.penerbit}
-                                onChange={handleInputChange}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition"
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Tahun Terbit</label>
-                            <input
-                                type="number"
-                                name="tahunTerbit"
-                                value={newBook.tahunTerbit}
-                                onChange={handleInputChange}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition"
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
-                            <input
-                                type="text"
-                                name="kategori"
-                                value={newBook.kategori}
-                                onChange={handleInputChange}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition"
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Jumlah Eksemplar</label>
-                            <input
-                                type="number"
-                                name="jumlahEksemplar"
-                                value={newBook.jumlahEksemplar}
-                                onChange={handleInputChange}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition"
-                                min="1"
-                                required
-                            />
-                        </div>
-                        <div className="col-span-1 md:col-span-2 flex gap-3">
-                            <button
-                                type="submit"
-                                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
-                            >
-                                <Save className="w-4 h-4" /> Simpan
-                            </button>
-                            <button
-                                type="button"
-                                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
-                                onClick={() => setShowAddForm(false)}
-                            >
-                                <X className="w-4 h-4" /> Batal
-                            </button>
-                        </div>
-                    </form>
+                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+                    <div className="bg-white p-8 rounded-2xl shadow-2xl max-w-lg w-full transform transition-all duration-300 scale-100 border border-gray-200">
+                        <h2 className="text-xl font-semibold mb-6 flex items-center gap-2 text-indigo-700">
+                            <Plus className="w-5 h-5" /> Tambah Buku Baru
+                        </h2>
+                        <form onSubmit={handleAddBook} className="grid grid-cols-1 gap-6">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Judul Buku</label>
+                                <input
+                                    type="text"
+                                    name="judul"
+                                    value={newBook.judul}
+                                    onChange={handleInputChange}
+                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Penerbit</label>
+                                <input
+                                    type="text"
+                                    name="penerbit"
+                                    value={newBook.penerbit}
+                                    onChange={handleInputChange}
+                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Tahun Terbit</label>
+                                <input
+                                    type="number"
+                                    name="tahunTerbit"
+                                    value={newBook.tahunTerbit}
+                                    onChange={handleInputChange}
+                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
+                                <select
+                                    name="kategori"
+                                    value={newBook.kategori}
+                                    onChange={handleInputChange}
+                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition"
+                                    required
+                                >
+                                    <option value="" disabled>Pilih Kategori</option>
+                                    {categories.map((category) => (
+                                        <option key={category} value={category}>
+                                            {category}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Jumlah Eksemplar</label>
+                                <input
+                                    type="number"
+                                    name="jumlahEksemplar"
+                                    value={newBook.jumlahEksemplar}
+                                    onChange={handleInputChange}
+                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition"
+                                    min="1"
+                                    required
+                                />
+                            </div>
+                            <div className="flex gap-3 justify-end">
+                                <button
+                                    type="submit"
+                                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
+                                >
+                                    <Save className="w-4 h-4" /> Simpan
+                                </button>
+                                <button
+                                    type="button"
+                                    className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
+                                    onClick={() => setShowAddForm(false)}
+                                >
+                                    <X className="w-4 h-4" /> Batal
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             )}
 
             {showEditForm && (
-                <div className="bg-white p-6 rounded-xl shadow-2xl mb-8 transform transition-all duration-300">
-                    <h2 className="text-xl font-semibold mb-6 flex items-center gap-2 text-amber-700">
-                        <Edit className="w-5 h-5" /> Edit Buku
-                    </h2>
-                    <form onSubmit={handleEditBook} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Judul Buku</label>
-                            <input
-                                type="text"
-                                name="judul"
-                                value={editBook.judul}
-                                onChange={handleEditInputChange}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm transition"
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Penerbit</label>
-                            <input
-                                type="text"
-                                name="penerbit"
-                                value={editBook.penerbit}
-                                onChange={handleEditInputChange}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm transition"
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Tahun Terbit</label>
-                            <input
-                                type="number"
-                                name="tahunTerbit"
-                                value={editBook.tahunTerbit}
-                                onChange={handleEditInputChange}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm transition"
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
-                            <input
-                                type="text"
-                                name="kategori"
-                                value={editBook.kategori}
-                                onChange={handleEditInputChange}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm transition"
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Jumlah Eksemplar</label>
-                            <input
-                                type="number"
-                                name="jumlahEksemplar"
-                                value={editBook.jumlahEksemplar}
-                                onChange={handleEditInputChange}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm transition"
-                                min="1"
-                                required
-                            />
-                        </div>
-                        <div className="col-span-1 md:col-span-2 flex gap-3">
-                            <button
-                                type="submit"
-                                className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
-                            >
-                                <Save className="w-4 h-4" /> Update
-                            </button>
-                            <button
-                                type="button"
-                                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
-                                onClick={() => setShowEditForm(false)}
-                            >
-                                <X className="w-4 h-4" /> Batal
-                            </button>
-                        </div>
-                    </form>
+                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+                    <div className="bg-white p-8 rounded-2xl shadow-2xl max-w-lg w-full transform transition-all duration-300 scale-100 border border-gray-200">
+                        <h2 className="text-xl font-semibold mb-6 flex items-center gap-2 text-amber-700">
+                            <Edit className="w-5 h-5" /> Edit Buku
+                        </h2>
+                        <form onSubmit={handleEditBook} className="grid grid-cols-1 gap-6">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Judul Buku</label>
+                                <input
+                                    type="text"
+                                    name="judul"
+                                    value={editBook.judul}
+                                    onChange={handleEditInputChange}
+                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm transition"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Penerbit</label>
+                                <input
+                                    type="text"
+                                    name="penerbit"
+                                    value={editBook.penerbit}
+                                    onChange={handleEditInputChange}
+                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm transition"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Tahun Terbit</label>
+                                <input
+                                    type="number"
+                                    name="tahunTerbit"
+                                    value={editBook.tahunTerbit}
+                                    onChange={handleEditInputChange}
+                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm transition"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
+                                <select
+                                    name="kategori"
+                                    value={editBook.kategori}
+                                    onChange={handleEditInputChange}
+                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm transition"
+                                    required
+                                >
+                                    <option value="" disabled>Pilih Kategori</option>
+                                    {categories.map((category) => (
+                                        <option key={category} value={category}>
+                                            {category}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Jumlah Eksemplar</label>
+                                <input
+                                    type="number"
+                                    name="jumlahEksemplar"
+                                    value={editBook.jumlahEksemplar}
+                                    onChange={handleEditInputChange}
+                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm transition"
+                                    min="1"
+                                    required
+                                />
+                            </div>
+                            <div className="flex gap-3 justify-end">
+                                <button
+                                    type="submit"
+                                    className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
+                                >
+                                    <Save className="w-4 h-4" /> Update
+                                </button>
+                                <button
+                                    type="button"
+                                    className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
+                                    onClick={() => setShowEditForm(false)}
+                                >
+                                    <X className="w-4 h-4" /> Batal
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             )}
 
             {showDeleteModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center">
+                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
                     <div className="bg-white p-6 rounded-xl shadow-2xl max-w-md w-full transform transition-all duration-300 scale-100">
                         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2 text-red-700">
                             <Trash2 className="w-5 h-5" /> Konfirmasi Hapus
                         </h2>
                         <p className="mb-6 text-gray-600">Apakah Anda yakin ingin menghapus buku ini?</p>
-                        <div className="flex gap-3">
+                        <div className="flex gap-3 justify-end">
                             <button
                                 onClick={handleDeleteBook}
                                 className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
@@ -529,7 +553,7 @@ const BooksControllerPustakawan: React.FC = () => {
             )}
 
             {showNotification && (
-                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center">
+                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
                     <div className={`bg-white p-6 rounded-xl shadow-2xl max-w-md w-full transform transition-all duration-300 ${isError ? 'border-l-4 border-red-600' : 'border-l-4 border-green-600'}`}>
                         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                             {isError ? (
@@ -540,12 +564,14 @@ const BooksControllerPustakawan: React.FC = () => {
                             {isError ? "Error" : "Sukses"}
                         </h2>
                         <p className="mb-6 text-gray-600">{notificationMessage}</p>
-                        <button
-                            onClick={() => setShowNotification(false)}
-                            className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
-                        >
-                            <X className="w-4 h-4" /> Tutup
-                        </button>
+                        <div className="flex justify-end">
+                            <button
+                                onClick={() => setShowNotification(false)}
+                                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
+                            >
+                                <X className="w-4 h-4" /> Tutup
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
@@ -556,7 +582,6 @@ const BooksControllerPustakawan: React.FC = () => {
                         <h2 className="text-xl font-bold mb-6 flex items-center gap-3 text-blue-700">
                             <Info className="w-6 h-6" /> Detail Buku
                         </h2>
-
                         <div className="space-y-5">
                             <div className="flex items-start gap-3">
                                 <BookOpen className="w-5 h-5 text-gray-500 mt-1" />
@@ -565,7 +590,6 @@ const BooksControllerPustakawan: React.FC = () => {
                                     <p className="text-gray-900 font-semibold">{openInfoModal.judul}</p>
                                 </div>
                             </div>
-
                             <div className="flex items-start gap-3">
                                 <Building className="w-5 h-5 text-gray-500 mt-1" />
                                 <div>
@@ -573,7 +597,6 @@ const BooksControllerPustakawan: React.FC = () => {
                                     <p className="text-gray-900 font-semibold">{openInfoModal.penerbit}</p>
                                 </div>
                             </div>
-
                             <div className="flex items-start gap-3">
                                 <Calendar className="w-5 h-5 text-gray-500 mt-1" />
                                 <div>
@@ -581,7 +604,6 @@ const BooksControllerPustakawan: React.FC = () => {
                                     <p className="text-gray-900 font-semibold">{openInfoModal.tahunTerbit}</p>
                                 </div>
                             </div>
-
                             <div className="flex items-start gap-3">
                                 <Tags className="w-5 h-5 text-gray-500 mt-1" />
                                 <div>
@@ -589,7 +611,6 @@ const BooksControllerPustakawan: React.FC = () => {
                                     <p className="text-gray-900 font-semibold">{openInfoModal.kategori}</p>
                                 </div>
                             </div>
-
                             <div className="flex items-start gap-3">
                                 <Layers className="w-5 h-5 text-gray-500 mt-1" />
                                 <div>
@@ -598,7 +619,6 @@ const BooksControllerPustakawan: React.FC = () => {
                                 </div>
                             </div>
                         </div>
-
                         <div className="mt-8 flex justify-end">
                             <button
                                 onClick={() => setOpenInfoModal(null)}
@@ -611,86 +631,87 @@ const BooksControllerPustakawan: React.FC = () => {
                 </div>
             )}
 
-
-            {loading ? (
-                <div className="text-center text-gray-500 py-8">
-                    <div className="animate-spin inline-block w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full"></div>
-                    <p className="mt-2 font-medium">Memuat data buku...</p>
-                </div>
-            ) : (
-                <div className="bg-white rounded-xl shadow-2xl overflow-hidden cursor-pointer">
-                    <table className="min-w-full table-auto">
-                        <thead className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white">
-                            <tr>
-                                <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">No</th>
-                                <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Judul</th>
-                                <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Penerbit</th>
-                                <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Tahun</th>
-                                <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Kategori</th>
-                                <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Jumlah</th>
-                                <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredBooks.length === 0 ? (
+            {!showAddForm && !showEditForm && !showDeleteModal && !showNotification && !openInfoModal && (
+                loading ? (
+                    <div className="text-center text-gray-500 py-8">
+                        <div className="animate-spin inline-block w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full"></div>
+                        <p className="mt-2 font-medium">Memuat data buku...</p>
+                    </div>
+                ) : (
+                    <div className="bg-white rounded-xl shadow-2xl overflow-hidden cursor-pointer">
+                        <table className="min-w-full table-auto">
+                            <thead className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white">
                                 <tr>
-                                    <td colSpan={7} className="px-6 py-4 text-center text-sm text-gray-500">
-                                        Tidak ada data buku ditemukan
-                                    </td>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">No</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Judul</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Penerbit</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Tahun</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Kategori</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Jumlah</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Aksi</th>
                                 </tr>
-                            ) : (
-                                filteredBooks.map((book, index) => (
-                                    <tr
-                                        key={book.id}
-                                        className={`${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} hover:bg-indigo-50 transition-all duration-200 transform hover:shadow-md`}
-                                    >
-                                        <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
-                                            {index + 1}
-                                        </td>
-                                        <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
-                                            {book.judul}
-                                        </td>
-                                        <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
-                                            {book.penerbit}
-                                        </td>
-                                        <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
-                                            {book.tahunTerbit}
-                                        </td>
-                                        <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
-                                            {book.kategori}
-                                        </td>
-                                        <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
-                                            {book.jumlahEksemplar}
-                                        </td>
-                                        <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 flex gap-2">
-                                            <button
-                                                className="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1 rounded-lg flex items-center gap-1 shadow-sm transition-transform transform hover:scale-105 cursor-pointer"
-                                                onClick={() => handleShowEditForm(book)}
-                                            >
-                                                <Edit className="w-4 h-4" />
-                                            </button>
-                                            <button
-                                                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg flex items-center gap-1 shadow-sm transition-transform transform hover:scale-105 cursor-pointer"
-                                                onClick={() => {
-                                                    setDeleteBookId(book.id);
-                                                    setShowDeleteModal(true);
-                                                }}
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                            <button
-                                                className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg flex items-center gap-1 shadow-sm transition-transform transform hover:scale-105 cursor-pointer"
-                                                onClick={() => setOpenInfoModal(book)}
-                                            >
-                                                <Info className="w-4 h-4" />
-                                            </button>
+                            </thead>
+                            <tbody>
+                                {filteredBooks.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={7} className="px-6 py-4 text-center text-sm text-gray-500">
+                                            Tidak ada data buku ditemukan
                                         </td>
                                     </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+                                ) : (
+                                    filteredBooks.map((book, index) => (
+                                        <tr
+                                            key={book.id}
+                                            className={`${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} hover:bg-indigo-50 transition-all duration-200 transform hover:shadow-md`}
+                                        >
+                                            <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
+                                                {index + 1}
+                                            </td>
+                                            <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
+                                                {book.judul}
+                                            </td>
+                                            <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
+                                                {book.penerbit}
+                                            </td>
+                                            <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
+                                                {book.tahunTerbit}
+                                            </td>
+                                            <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
+                                                {book.kategori}
+                                            </td>
+                                            <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
+                                                {book.jumlahEksemplar}
+                                            </td>
+                                            <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 flex gap-2">
+                                                <button
+                                                    className="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1 rounded-lg flex items-center gap-1 shadow-sm transition-transform transform hover:scale-105 cursor-pointer"
+                                                    onClick={() => handleShowEditForm(book)}
+                                                >
+                                                    <Edit className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg flex items-center gap-1 shadow-sm transition-transform transform hover:scale-105 cursor-pointer"
+                                                    onClick={() => {
+                                                        setDeleteBookId(book.id);
+                                                        setShowDeleteModal(true);
+                                                    }}
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg flex items-center gap-1 shadow-sm transition-transform transform hover:scale-105 cursor-pointer"
+                                                    onClick={() => setOpenInfoModal(book)}
+                                                >
+                                                    <Info className="w-4 h-4" />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                )
             )}
         </div>
     );
