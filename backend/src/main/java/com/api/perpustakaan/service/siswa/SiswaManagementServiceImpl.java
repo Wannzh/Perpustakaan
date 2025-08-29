@@ -33,6 +33,11 @@ public class SiswaManagementServiceImpl implements SiswaManagementService {
         if (userRepository.existsByNis(request.getNis())) {
             throw new RuntimeException("NIS already exists");
         }
+        // Validasi kelas hanya boleh 10, 11, 12
+        if (!(request.getUserClass().equals("10") || request.getUserClass().equals("11")
+                || request.getUserClass().equals("12"))) {
+            throw new RuntimeException("Kelas hanya boleh 10, 11, atau 12");
+        }
 
         User siswa = User.builder()
                 .name(request.getName())
