@@ -19,23 +19,35 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public BookResponseDTO createBook(BookRequestDTO request) {
-        Book book = new Book();
-        book.setJudul(request.getJudul());
-        book.setPengarang(request.getPengarang());
-        book.setPenerbit(request.getPenerbit());
-        book.setTahunTerbit(request.getTahunTerbit());
-        book.setKategori(request.getKategori());
-        book.setJumlahEksemplar(request.getJumlahEksemplar());
-        book.setStokTersedia(request.getJumlahEksemplar());
-        book.setCreatedAt(LocalDateTime.now());
-        book.setUpdatedAt(LocalDateTime.now());
+        try {
+            // Simpan file cover ke folder lokal
+            String fileName = System.currentTimeMillis() + "_" + request.getCoverImage().getOriginalFilename();
+            String uploadDir = "uploads/covers/"; // folder di server
+            java.nio.file.Path path = java.nio.file.Paths.get(uploadDir + fileName);
 
-        Book saved = bookRepository.save(book);
+            java.nio.file.Files.createDirectories(path.getParent());
+            request.getCoverImage().transferTo(path);
 
-        return mapToResponse(saved);
+            Book book = new Book();
+            book.setJudul(request.getJudul());
+            book.setPengarang(request.getPengarang());
+            book.setPenerbit(request.getPenerbit());
+            book.setTahunTerbit(request.getTahunTerbit());
+            book.setKategori(request.getKategori());
+            book.setJumlahEksemplar(request.getJumlahEksemplar());
+            book.setStokTersedia(request.getJumlahEksemplar());
+            book.setCoverImage(path.toString()); // simpan path di DB
+            book.setCreatedAt(LocalDateTime.now());
+            book.setUpdatedAt(LocalDateTime.now());
+
+            Book saved = bookRepository.save(book);
+            return mapToResponse(saved);
+        } catch (Exception e) {
+            throw new RuntimeException("Gagal upload cover image", e);
+        }
     }
 
-     @Override
+    @Override
     public BookResponseDTO updateBook(Integer id, BookRequestDTO request) {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Buku tidak ditemukan"));
@@ -88,6 +100,7 @@ public class BookServiceImpl implements BookService {
                 .kategori(book.getKategori())
                 .jumlahEksemplar(book.getJumlahEksemplar())
                 .stokTersedia(book.getStokTersedia())
+                .coverImage(book.getCoverImage())
                 .build();
     }
 }

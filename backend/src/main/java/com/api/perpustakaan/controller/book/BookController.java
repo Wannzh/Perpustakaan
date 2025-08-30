@@ -18,8 +18,8 @@ public class BookController {
 
     private final BookService bookService;
 
-    @PostMapping
-    public ResponseEntity<BookResponseDTO> create(@RequestBody BookRequestDTO request) {
+    @PostMapping(value = "/tambah", consumes = "multipart/form-data")
+    public ResponseEntity<BookResponseDTO> createBook(@ModelAttribute BookRequestDTO request) {
         return ResponseEntity.ok(bookService.createBook(request));
     }
 

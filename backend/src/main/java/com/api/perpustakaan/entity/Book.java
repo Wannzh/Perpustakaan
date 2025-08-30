@@ -33,6 +33,10 @@ public class Book {
     @Column(name = "stok_tersedia")
     private Integer stokTersedia;
 
+    // path cover image
+    @Column(name = "cover_image")
+    private String coverImage;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 

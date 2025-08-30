@@ -14,4 +14,5 @@ public class BookResponseDTO {
     private String kategori;
     private Integer jumlahEksemplar;
     private Integer stokTersedia;
+    private String coverImage; // response Image
 }

@@ -77,6 +77,7 @@ public class SpringSecurity {
                                                 .requestMatchers(
                                                                 "/api/peminjaman/manual/**",
                                                                 "/api/pengembalian/manual/**",
+                                                                "/pengembalian/konfirmasi/**",
                                                                 "/api/test/**")
                                                 .hasAnyAuthority(RoleConstant.PUSTAKAWAN.name(),
                                                                 RoleConstant.SISWA.name())
@@ -86,7 +87,9 @@ public class SpringSecurity {
                                                                 "/api/peminjaman/self/**",
                                                                 "/api/pengembalian/self/**",
                                                                 "/api/notifications/**",
-                                                                "/api/peminjaman/*/rating")
+                                                                "/api/peminjaman/*/rating",
+                                                                "/api/cart",
+                                                                "api/cart/**")
                                                 .hasAuthority(RoleConstant.SISWA.name())
 
                                                 // KEPALA only

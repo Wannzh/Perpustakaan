@@ -9,5 +9,5 @@ import com.api.perpustakaan.dto.pengembalian.PengembalianRequestDTO;
 public interface PengembalianService {
     ResponseEntity<?> kembalikanBuku(PengembalianRequestDTO request);
     ResponseEntity<?> kembalikanBukuMandiri(PengembalianRequestDTO request, UUID siswaId);
-
+    ResponseEntity<?> konfirmasiPengembalian(Integer transactionId, boolean disetujui);
 }

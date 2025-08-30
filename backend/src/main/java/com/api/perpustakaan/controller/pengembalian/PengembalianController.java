@@ -40,4 +40,12 @@ public class PengembalianController {
 
         return pengembalianService.kembalikanBukuMandiri(request, siswaId);
     }
+
+    @PutMapping("/konfirmasi/{id}")
+    public ResponseEntity<?> konfirmasiPengembalian(
+            @PathVariable Integer id,
+            @RequestParam boolean disetujui) {
+        return pengembalianService.konfirmasiPengembalian(id, disetujui);
+    }
+
 }

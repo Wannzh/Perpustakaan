@@ -125,22 +125,28 @@ public class PengembalianServiceImpl implements PengembalianService {
             return ResponseEntity.status(403).body("Anda tidak memiliki hak untuk mengembalikan transaksi ini.");
         }
 
+        // Validasi jika menunggu konfirmasi maka tidak bisa akses apapun
+        if (transaksi.getStatus() == StatusConstant.MENUNGGU_KONFIRMASI) {
+            return ResponseEntity.badRequest()
+                    .body("Pengajuan pengembalian sudah dikirim, menunggu konfirmasi pustakawan.");
+        }
+
         if (transaksi.getStatus() == StatusConstant.DIKEMBALIKAN) {
             return ResponseEntity.badRequest().body("Buku ini sudah dikembalikan.");
         }
 
-        // Proses pengembalian
+        // Catat pengajuan pengembalian
         ReturnStatusConstant statusPengembalian = request.getStatusPengembalian();
         transaksi.setTanggalKembali(LocalDate.now());
         transaksi.setStatusKembali(statusPengembalian);
         transaksi.setCatatan(request.getCatatan());
-        transaksi.setStatus(StatusConstant.DIKEMBALIKAN);
+        transaksi.setStatus(StatusConstant.MENUNGGU_KONFIRMASI); // status pending
         transaksi.setUpdatedAt(LocalDateTime.now());
 
-        // Hitung dan set denda
+        // Hitung denda sementara
         transaksi.setDenda(hitungDenda(transaksi, statusPengembalian));
         transaksi.setDendaTotal(hitungDenda(transaksi, statusPengembalian));
-        // Memasukan jenis denda denda
+
         switch (statusPengembalian) {
             case NORMAL:
                 if (transaksi.getTanggalJatuhTempo() != null
@@ -156,12 +162,37 @@ public class PengembalianServiceImpl implements PengembalianService {
                 break;
         }
 
-        if (statusPengembalian == ReturnStatusConstant.NORMAL) {
-            transaksi.getBook().setStokTersedia(transaksi.getBook().getStokTersedia() + 1);
-            bookRepository.save(transaksi.getBook());
-        }
+        // tidak update stok, menunggu pustakawan konfirmasi
 
         transactionRepository.save(transaksi);
-        return ResponseEntity.ok("Pengembalian mandiri berhasil dicatat.");
+        return ResponseEntity.ok("Pengajuan pengembalian berhasil dicatat. Menunggu konfirmasi pustakawan.");
     }
+
+    @Override
+    public ResponseEntity<?> konfirmasiPengembalian(Integer transactionId, boolean disetujui) {
+        Transaction transaksi = transactionRepository.findById(transactionId)
+                .orElseThrow(() -> new RuntimeException("Transaksi tidak ditemukan."));
+
+        if (transaksi.getStatus() != StatusConstant.MENUNGGU_KONFIRMASI) {
+            return ResponseEntity.badRequest().body("Transaksi ini tidak menunggu konfirmasi.");
+        }
+
+        if (disetujui) {
+            transaksi.setStatus(StatusConstant.DIKEMBALIKAN);
+            if (transaksi.getStatusKembali() == ReturnStatusConstant.NORMAL) {
+                Book buku = transaksi.getBook();
+                buku.setStokTersedia(buku.getStokTersedia() + 1);
+                bookRepository.save(buku);
+            }
+        } else {
+            transaksi.setStatus(StatusConstant.DIPINJAM); // ditolak, tetap dianggap belum kembali
+            transaksi.setTanggalKembali(null);
+        }
+
+        transaksi.setUpdatedAt(LocalDateTime.now());
+        transactionRepository.save(transaksi);
+
+        return ResponseEntity.ok("Konfirmasi pengembalian telah diproses.");
+    }
+
 }
