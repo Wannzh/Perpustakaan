@@ -1,8 +1,5 @@
 package com.api.perpustakaan.controller.cart;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.api.perpustakaan.dto.cart.CartRequestDTO;
 import com.api.perpustakaan.service.cart.CartService;
 
@@ -13,7 +10,6 @@ import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping("/api/cart")
@@ -38,5 +34,16 @@ public class CartController {
     public ResponseEntity<?> getCart(HttpServletRequest servletRequest) {
         UUID siswaId = (UUID) servletRequest.getAttribute("userId");
         return ResponseEntity.ok(cartService.getCart(siswaId));
+    }
+
+    @PostMapping("/checkout")
+    public ResponseEntity<?> checkout(HttpServletRequest servletRequest) {
+        UUID siswaId = (UUID) servletRequest.getAttribute("userId");
+
+        if (siswaId == null) {
+            return ResponseEntity.status(401).body("Unauthorized: userId tidak ditemukan dalam token.");
+        }
+
+        return cartService.checkout(siswaId);
     }
 }

@@ -12,4 +12,5 @@ public interface CartService {
     ResponseEntity<?> addToCart(UUID siswaId, CartRequestDTO request);
     ResponseEntity<?> removeFromCart(UUID siswaId, Integer bookId);
     List<CartResponseDTO> getCart(UUID siswaId);
+    ResponseEntity<?> checkout(UUID siswaId);
 }
