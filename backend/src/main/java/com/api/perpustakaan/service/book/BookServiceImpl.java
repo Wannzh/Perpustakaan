@@ -36,7 +36,7 @@ public class BookServiceImpl implements BookService {
             book.setKategori(request.getKategori());
             book.setJumlahEksemplar(request.getJumlahEksemplar());
             book.setStokTersedia(request.getJumlahEksemplar());
-            book.setCoverImage(path.toString()); // simpan path di DB
+            book.setCoverImage("/covers/" + fileName);
             book.setCreatedAt(LocalDateTime.now());
             book.setUpdatedAt(LocalDateTime.now());
 
@@ -91,6 +91,14 @@ public class BookServiceImpl implements BookService {
     }
 
     private BookResponseDTO mapToResponse(Book book) {
+        String baseUrl = "http://localhost:8080";
+        String coverUrl;
+
+        if (book.getCoverImage() != null && !book.getCoverImage().isBlank()) {
+            coverUrl = baseUrl + book.getCoverImage();
+        } else {
+            coverUrl = baseUrl + "/covers/default.png";
+        }
         return BookResponseDTO.builder()
                 .id(book.getId())
                 .judul(book.getJudul())
@@ -100,7 +108,7 @@ public class BookServiceImpl implements BookService {
                 .kategori(book.getKategori())
                 .jumlahEksemplar(book.getJumlahEksemplar())
                 .stokTersedia(book.getStokTersedia())
-                .coverImage(book.getCoverImage())
+                .coverImage(coverUrl)
                 .build();
     }
 }
