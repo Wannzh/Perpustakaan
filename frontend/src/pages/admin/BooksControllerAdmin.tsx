@@ -1,22 +1,27 @@
 import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
-import { Book, Plus, Search, X, Save, Trash2, Edit, XCircle, CheckCircle, AlertCircle, Info, Building, Calendar, Tags, Layers, BookOpen } from "lucide-react";
+import { Book, Plus, Search, X, Save, Trash2, Edit, XCircle, CheckCircle, AlertCircle, Info, Building, Calendar, Tags, Layers, BookOpen, User } from "lucide-react";
 
 interface Books {
     id: number;
     judul: string;
+    pengarang: string | null;
     penerbit: string;
     tahunTerbit: number;
     kategori: string;
     jumlahEksemplar: number;
+    stokTersedia: number;
+    coverImage?: string | File | null; // Updated to allow File
 }
 
 interface BooksRequestDTO {
     judul: string;
+    pengarang: string | null;
     penerbit: string;
     tahunTerbit: number;
     kategori: string;
     jumlahEksemplar: number;
+    coverImage?: File | null;
 }
 
 const BooksControllerAdmin: React.FC = () => {
@@ -33,19 +38,25 @@ const BooksControllerAdmin: React.FC = () => {
     const [openInfoModal, setOpenInfoModal] = useState<Books | null>(null);
     const [newBook, setNewBook] = useState<BooksRequestDTO>({
         judul: "",
+        pengarang: "",
         penerbit: "",
         tahunTerbit: new Date().getFullYear(),
         kategori: "",
         jumlahEksemplar: 1,
+        coverImage: null,
     });
     const [editBook, setEditBook] = useState<Books>({
         id: 0,
         judul: "",
+        pengarang: "",
         penerbit: "",
         tahunTerbit: new Date().getFullYear(),
         kategori: "",
         jumlahEksemplar: 1,
+        stokTersedia: 1,
+        coverImage: "",
     });
+    console.log(bookList[0]?.coverImage);
     const [searchTerm, setSearchTerm] = useState<string>("");
     const [searchType, setSearchType] = useState<"judul" | "kategori">("judul");
 
@@ -166,13 +177,23 @@ const BooksControllerAdmin: React.FC = () => {
         }
 
         try {
-            const response = await fetch("http://localhost:8080/api/books", {
+            const formData = new FormData();
+            formData.append("judul", newBook.judul);
+            if (newBook.pengarang) formData.append("pengarang", newBook.pengarang);
+            formData.append("penerbit", newBook.penerbit);
+            formData.append("tahunTerbit", newBook.tahunTerbit.toString());
+            formData.append("kategori", newBook.kategori);
+            formData.append("jumlahEksemplar", newBook.jumlahEksemplar.toString());
+            if (newBook.coverImage) {
+                formData.append("coverImage", newBook.coverImage);
+            }
+
+            const response = await fetch("http://localhost:8080/api/books/tambah", {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify(newBook),
+                body: formData,
             });
 
             if (!response.ok) {
@@ -183,10 +204,12 @@ const BooksControllerAdmin: React.FC = () => {
             fetchBookList();
             setNewBook({
                 judul: "",
+                pengarang: "",
                 penerbit: "",
                 tahunTerbit: new Date().getFullYear(),
                 kategori: "",
                 jumlahEksemplar: 1,
+                coverImage: null,
             });
             setShowAddForm(false);
             setNotificationMessage("Buku berhasil ditambahkan");
@@ -210,13 +233,23 @@ const BooksControllerAdmin: React.FC = () => {
         }
 
         try {
+            const formData = new FormData();
+            formData.append("judul", editBook.judul);
+            if (editBook.pengarang) formData.append("pengarang", editBook.pengarang);
+            formData.append("penerbit", editBook.penerbit);
+            formData.append("tahunTerbit", editBook.tahunTerbit.toString());
+            formData.append("kategori", editBook.kategori);
+            formData.append("jumlahEksemplar", editBook.jumlahEksemplar.toString());
+            if (editBook.coverImage instanceof File) {
+                formData.append("coverImage", editBook.coverImage);
+            }
+
             const response = await fetch(`http://localhost:8080/api/books/${editBook.id}`, {
                 method: "PUT",
                 headers: {
-                    "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify(editBook),
+                body: formData,
             });
 
             if (!response.ok) {
@@ -228,10 +261,13 @@ const BooksControllerAdmin: React.FC = () => {
             setEditBook({
                 id: 0,
                 judul: "",
+                pengarang: "",
                 penerbit: "",
                 tahunTerbit: new Date().getFullYear(),
                 kategori: "",
                 jumlahEksemplar: 1,
+                stokTersedia: 1,
+                coverImage: "",
             });
             setShowEditForm(false);
             setNotificationMessage("Buku berhasil diperbarui");
@@ -281,19 +317,62 @@ const BooksControllerAdmin: React.FC = () => {
     };
 
     const handleShowEditForm = (book: Books) => {
-        setEditBook(book);
+        setEditBook({
+            ...book,
+            coverImage: book.coverImage || "",
+        });
         setShowEditForm(true);
         setShowAddForm(false);
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        setNewBook((prev) => ({ ...prev, [name]: name === "tahunTerbit" || name === "jumlahEksemplar" ? parseInt(value) || 0 : value }));
+        const { name, value, files } = e.target as HTMLInputElement; // Explicitly cast to HTMLInputElement
+        if (name === "coverImage" && files && files[0]) {
+            const file = files[0];
+            if (file.size > 10 * 1024 * 1024) { // 10MB limit
+                setNotificationMessage("Ukuran file terlalu besar (maks 10MB)");
+                setIsError(true);
+                setShowNotification(true);
+                return;
+            }
+            if (!file.type.startsWith("image/")) {
+                setNotificationMessage("File harus berupa gambar");
+                setIsError(true);
+                setShowNotification(true);
+                return;
+            }
+            setNewBook((prev) => ({ ...prev, coverImage: file }));
+        } else {
+            setNewBook((prev) => ({
+                ...prev,
+                [name]: name === "tahunTerbit" || name === "jumlahEksemplar" ? parseInt(value) || 0 : value,
+            }));
+        }
     };
 
     const handleEditInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        setEditBook((prev) => ({ ...prev, [name]: name === "tahunTerbit" || name === "jumlahEksemplar" ? parseInt(value) || 0 : value }));
+        const { name, value, files } = e.target as HTMLInputElement; // Explicitly cast to HTMLInputElement
+        if (name === "coverImage" && files && files[0]) {
+            const file = files[0];
+            if (file.size > 10 * 1024 * 1024) { // 10MB limit
+                setNotificationMessage("Ukuran file terlalu besar (maks 10MB)");
+                setIsError(true);
+                setShowNotification(true);
+                return;
+            }
+            if (!file.type.startsWith("image/")) {
+                setNotificationMessage("File harus berupa gambar");
+                setIsError(true);
+                setShowNotification(true);
+                return;
+            }
+            setEditBook((prev) => ({ ...prev, coverImage: file }));
+        } else {
+            setEditBook((prev) => ({
+                ...prev,
+                [name]: name === "tahunTerbit" || name === "jumlahEksemplar" ? parseInt(value) || 0 : value,
+            }));
+        }
     };
 
     return (
@@ -368,6 +447,16 @@ const BooksControllerAdmin: React.FC = () => {
                                 />
                             </div>
                             <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Pengarang</label>
+                                <input
+                                    type="text"
+                                    name="pengarang"
+                                    value={newBook.pengarang || ""}
+                                    onChange={handleInputChange}
+                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition"
+                                />
+                            </div>
+                            <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Penerbit</label>
                                 <input
                                     type="text"
@@ -418,6 +507,23 @@ const BooksControllerAdmin: React.FC = () => {
                                     required
                                 />
                             </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Cover Image</label>
+                                {newBook.coverImage && (
+                                    <img
+                                        src={URL.createObjectURL(newBook.coverImage)}
+                                        alt="Preview"
+                                        className="w-32 h-32 object-cover mb-2"
+                                    />
+                                )}
+                                <input
+                                    type="file"
+                                    name="coverImage"
+                                    accept="image/*"
+                                    onChange={handleInputChange}
+                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition"
+                                />
+                            </div>
                             <div className="flex gap-3 justify-end">
                                 <button
                                     type="submit"
@@ -454,6 +560,16 @@ const BooksControllerAdmin: React.FC = () => {
                                     onChange={handleEditInputChange}
                                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm transition"
                                     required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Pengarang</label>
+                                <input
+                                    type="text"
+                                    name="pengarang"
+                                    value={editBook.pengarang || ""}
+                                    onChange={handleEditInputChange}
+                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm transition"
                                 />
                             </div>
                             <div>
@@ -505,6 +621,26 @@ const BooksControllerAdmin: React.FC = () => {
                                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm transition"
                                     min="1"
                                     required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Cover Image</label>
+                                {typeof editBook.coverImage === "string" && editBook.coverImage && (
+                                    <img src={editBook.coverImage} alt="Current cover" className="w-32 h-32 object-cover mb-2" />
+                                )}
+                                {editBook.coverImage instanceof File && (
+                                    <img
+                                        src={URL.createObjectURL(editBook.coverImage)}
+                                        alt="Preview"
+                                        className="w-32 h-32 object-cover mb-2"
+                                    />
+                                )}
+                                <input
+                                    type="file"
+                                    name="coverImage"
+                                    accept="image/*"
+                                    onChange={handleEditInputChange}
+                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 shadow-sm transition"
                                 />
                             </div>
                             <div className="flex gap-3 justify-end">
@@ -583,11 +719,23 @@ const BooksControllerAdmin: React.FC = () => {
                             <Info className="w-6 h-6" /> Detail Buku
                         </h2>
                         <div className="space-y-5">
+                            {typeof openInfoModal.coverImage === "string" && openInfoModal.coverImage && (
+                                <div className="flex items-start gap-3">
+                                    <img src={openInfoModal.coverImage} alt="Book cover" className="w-32 h-32 object-cover" />
+                                </div>
+                            )}
                             <div className="flex items-start gap-3">
                                 <BookOpen className="w-5 h-5 text-gray-500 mt-1" />
                                 <div>
                                     <label className="block text-sm text-gray-500 mb-1">Judul Buku</label>
                                     <p className="text-gray-900 font-semibold">{openInfoModal.judul}</p>
+                                </div>
+                            </div>
+                            <div className="flex items-start gap-3">
+                                <User className="w-5 h-5 text-gray-500 mt-1" />
+                                <div>
+                                    <label className="block text-sm text-gray-500 mb-1">Pengarang</label>
+                                    <p className="text-gray-900 font-semibold">{openInfoModal.pengarang || "Tidak diketahui"}</p>
                                 </div>
                             </div>
                             <div className="flex items-start gap-3">
@@ -618,6 +766,13 @@ const BooksControllerAdmin: React.FC = () => {
                                     <p className="text-gray-900 font-semibold">{openInfoModal.jumlahEksemplar}</p>
                                 </div>
                             </div>
+                            <div className="flex items-start gap-3">
+                                <Layers className="w-5 h-5 text-gray-500 mt-1" />
+                                <div>
+                                    <label className="block text-sm text-gray-500 mb-1">Stok Tersedia</label>
+                                    <p className="text-gray-900 font-semibold">{openInfoModal.stokTersedia}</p>
+                                </div>
+                            </div>
                         </div>
                         <div className="mt-8 flex justify-end">
                             <button
@@ -643,18 +798,21 @@ const BooksControllerAdmin: React.FC = () => {
                             <thead className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white">
                                 <tr>
                                     <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">No</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Cover</th>
                                     <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Judul</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Pengarang</th>
                                     <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Penerbit</th>
                                     <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Tahun</th>
                                     <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Kategori</th>
                                     <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Jumlah</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Stok</th>
                                     <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {filteredBooks.length === 0 ? (
                                     <tr>
-                                        <td colSpan={7} className="px-6 py-4 text-center text-sm text-gray-500">
+                                        <td colSpan={10} className="px-6 py-4 text-center text-sm text-gray-500">
                                             Tidak ada data buku ditemukan
                                         </td>
                                     </tr>
@@ -668,7 +826,17 @@ const BooksControllerAdmin: React.FC = () => {
                                                 {index + 1}
                                             </td>
                                             <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
+                                                {typeof book.coverImage === "string" && book.coverImage ? (
+                                                    <img src={book.coverImage} alt="Book cover" className="w-12 h-12 object-cover" />
+                                                ) : (
+                                                    "No Image"
+                                                )}
+                                            </td>
+                                            <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
                                                 {book.judul}
+                                            </td>
+                                            <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
+                                                {book.pengarang || "Tidak diketahui"}
                                             </td>
                                             <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
                                                 {book.penerbit}
@@ -681,6 +849,9 @@ const BooksControllerAdmin: React.FC = () => {
                                             </td>
                                             <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
                                                 {book.jumlahEksemplar}
+                                            </td>
+                                            <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 font-medium">
+                                                {book.stokTersedia}
                                             </td>
                                             <td className="whitespace-nowrap text-sm text-gray-900 px-6 py-4 flex gap-2">
                                                 <button

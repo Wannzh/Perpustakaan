@@ -27,6 +27,7 @@ import LoansBooksSiswa from "./pages/siswa/LoansBooksSiswa";
 import LoansBooksPustakawan from "./pages/perpustakawan/LoansBooksPustakawan";
 import BooksPengembalian from "./pages/perpustakawan/BooksPengembalian";
 import LaporanPustakawan from "./pages/perpustakawan/LaporanPustakawan";
+import CartPageSiswa from "./pages/siswa/CartPageSiswa";
 
 const router = createBrowserRouter([
   {
@@ -130,6 +131,10 @@ const router = createBrowserRouter([
           { 
             path: "loans",
             element: <LoansBooksSiswa /> 
+          },
+          { 
+            path: "cart",
+            element: <CartPageSiswa /> 
           },
         ],
       },
