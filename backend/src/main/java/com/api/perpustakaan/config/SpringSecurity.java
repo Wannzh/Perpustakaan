@@ -50,7 +50,8 @@ public class SpringSecurity {
                                                                 "/api/laporan/top-rated-books",
                                                                 "/api-docs/**",
                                                                 "/api-docs/swagger-config",
-                                                                "/api/auth/login")
+                                                                "/api/auth/login",
+                                                                "/uploads/covers/**")
                                                 .permitAll()
 
                                                 .requestMatchers(

@@ -8,4 +8,5 @@ public class CartResponseDTO {
     private Integer bookId;
     private String judul;
     private String pengarang;
+    private String coverImage;
 }

@@ -23,8 +23,8 @@ public class BookController {
         return ResponseEntity.ok(bookService.createBook(request));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<BookResponseDTO> update(@PathVariable Integer id, @RequestBody BookRequestDTO request) {
+    @PutMapping(value = "/{id}", consumes = "multipart/form-data")
+    public ResponseEntity<BookResponseDTO> update(@PathVariable Integer id, @ModelAttribute BookRequestDTO request) {
         return ResponseEntity.ok(bookService.updateBook(id, request));
     }
 

@@ -1,5 +1,8 @@
 package com.api.perpustakaan.service.book;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -21,13 +24,6 @@ public class BookServiceImpl implements BookService {
     public BookResponseDTO createBook(BookRequestDTO request) {
         try {
             // Simpan file cover ke folder lokal
-            String fileName = System.currentTimeMillis() + "_" + request.getCoverImage().getOriginalFilename();
-            String uploadDir = "uploads/covers/"; // folder di server
-            java.nio.file.Path path = java.nio.file.Paths.get(uploadDir + fileName);
-
-            java.nio.file.Files.createDirectories(path.getParent());
-            request.getCoverImage().transferTo(path);
-
             Book book = new Book();
             book.setJudul(request.getJudul());
             book.setPengarang(request.getPengarang());
@@ -36,9 +32,21 @@ public class BookServiceImpl implements BookService {
             book.setKategori(request.getKategori());
             book.setJumlahEksemplar(request.getJumlahEksemplar());
             book.setStokTersedia(request.getJumlahEksemplar());
-            book.setCoverImage("/covers/" + fileName);
             book.setCreatedAt(LocalDateTime.now());
             book.setUpdatedAt(LocalDateTime.now());
+
+            if (request.getCoverImage() != null && !request.getCoverImage().isEmpty()) {
+                String fileName = System.currentTimeMillis() + "_" + request.getCoverImage().getOriginalFilename();
+                String uploadDir = "uploads/covers/"; // folder di server
+                java.nio.file.Path path = java.nio.file.Paths.get(uploadDir + fileName);
+
+                java.nio.file.Files.createDirectories(path.getParent());
+                request.getCoverImage().transferTo(path);
+
+                book.setCoverImage("/uploads/covers/" + fileName);
+            } else {
+                book.setCoverImage(null); // atau set ke gambar default jika ada
+            }
 
             Book saved = bookRepository.save(book);
             return mapToResponse(saved);
@@ -51,6 +59,29 @@ public class BookServiceImpl implements BookService {
     public BookResponseDTO updateBook(Integer id, BookRequestDTO request) {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Buku tidak ditemukan"));
+
+        if (request.getCoverImage() != null && !request.getCoverImage().isEmpty()) {
+            try {
+                // (Opsional tapi direkomendasikan) Hapus file gambar lama jika ada
+                if (book.getCoverImage() != null && !book.getCoverImage().isBlank()) {
+                    Path oldImagePath = Paths.get("." + book.getCoverImage()); // Titik di awal untuk path relatif
+                    Files.deleteIfExists(oldImagePath);
+                }
+
+                // Simpan file gambar yang baru
+                String fileName = System.currentTimeMillis() + "_" + request.getCoverImage().getOriginalFilename();
+                String uploadDir = "uploads/covers/";
+                Path newImagePath = Paths.get(uploadDir + fileName);
+                Files.createDirectories(newImagePath.getParent());
+                request.getCoverImage().transferTo(newImagePath);
+
+                book.setCoverImage("/uploads/covers/" + fileName); // Perbarui path gambar di database
+
+            } catch (Exception e) {
+                // Sebaiknya gunakan logger di sini
+                throw new RuntimeException("Gagal memperbarui cover image", e);
+            }
+        }
 
         book.setJudul(request.getJudul());
         book.setPengarang(request.getPengarang());
@@ -97,7 +128,7 @@ public class BookServiceImpl implements BookService {
         if (book.getCoverImage() != null && !book.getCoverImage().isBlank()) {
             coverUrl = baseUrl + book.getCoverImage();
         } else {
-            coverUrl = baseUrl + "/covers/default.png";
+            coverUrl = baseUrl + "/uploads/covers/default.png";
         }
         return BookResponseDTO.builder()
                 .id(book.getId())

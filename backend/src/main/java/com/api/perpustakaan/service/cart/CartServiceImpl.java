@@ -74,13 +74,22 @@ public class CartServiceImpl implements CartService {
         User student = userRepository.findById(siswaId)
                 .orElseThrow(() -> new RuntimeException("Siswa tidak ditemukan"));
 
+        String baseUrl = "http://localhost:8080";
+
         return cartRepository.findByStudent(student).stream()
                 .map(cart -> {
                     CartResponseDTO dto = new CartResponseDTO();
+                    Book book = cart.getBook();
+
                     dto.setId(cart.getId());
                     dto.setBookId(cart.getBook().getId());
                     dto.setJudul(cart.getBook().getJudul());
                     dto.setPengarang(cart.getBook().getPengarang());
+                    if (book.getCoverImage() != null && !book.getCoverImage().isBlank()) {
+                        dto.setCoverImage(baseUrl + book.getCoverImage());
+                    } else {
+                        dto.setCoverImage(baseUrl + "/uploads/covers/default.png");
+                    }
                     return dto;
                 })
                 .collect(Collectors.toList());
