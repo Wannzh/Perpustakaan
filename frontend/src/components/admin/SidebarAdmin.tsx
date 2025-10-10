@@ -15,7 +15,7 @@ const SidebarAdmin: React.FC = () => {
   };
 
   const navItems = [
-    { to: "pustakawan-management", label: "Perpustakawan", icon: BookOpen },
+    { to: "pustakawan-management", label: "Pustakawan", icon: BookOpen },
     { to: "siswa-management", label: "Siswa", icon: Users },
     { to: "books-management", label: "Buku", icon: Book },
     { to: "laporan-management", label: "Laporan", icon: BarChart2 },
@@ -57,7 +57,7 @@ const SidebarAdmin: React.FC = () => {
             onClick={() => navigate("/")}
             className="text-2xl font-extrabold tracking-wide cursor-pointer bg-gradient-to-r from-indigo-400 to-purple-500 text-transparent bg-clip-text animate-fade-in-down"
           >
-            Admin Panel
+            Kepala Pustakawan Panel
           </h2>
           <button onClick={() => setIsOpen(false)} className="md:hidden text-white">
             <X className="w-6 h-6" />

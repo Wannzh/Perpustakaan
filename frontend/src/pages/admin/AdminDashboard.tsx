@@ -162,7 +162,7 @@ const AdminDashboard: React.FC = () => {
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center text-white px-6">
                 <h1 className="text-5xl font-extrabold mb-3 tracking-tight">
-                  Admin Dashboard
+                  Kepala Pustakawan Dashboard
                 </h1>
                 <p className="text-xl font-medium">SMA Negeri 2 Plus Sipirok Library</p>
                 <p className="text-lg mt-2 opacity-90">Streamline library operations with ease.</p>

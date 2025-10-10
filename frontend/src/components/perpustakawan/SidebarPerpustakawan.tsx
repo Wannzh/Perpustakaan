@@ -57,7 +57,7 @@ const SidebarPerpustakawan: React.FC = () => {
             onClick={() => navigate("/")}
             className="text-2xl font-extrabold tracking-wide cursor-pointer bg-gradient-to-r from-yellow-400 to-green-500 text-transparent bg-clip-text animate-fade-in-down"
           >
-            Perpustakawan
+            Pustakawan
           </h2>
           <button onClick={() => setIsOpen(false)} className="md:hidden text-white">
             <X className="w-6 h-6" />

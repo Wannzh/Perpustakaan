@@ -87,7 +87,7 @@ const PerpustakawanDashboard: React.FC = () => {
           />
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center text-white">
-              <h2 className="text-2xl sm:text-4xl font-bold mb-2">Perpustakawan Dashboard - SMA Negeri 2 Plus Sipirok Library</h2>
+              <h2 className="text-2xl sm:text-4xl font-bold mb-2">Pustakawan Dashboard - SMA Negeri 2 Plus Sipirok Library</h2>
               <p className="text-base sm:text-lg">Streamline library operations with ease.</p>
             </div>
           </div>
@@ -95,7 +95,7 @@ const PerpustakawanDashboard: React.FC = () => {
 
         {/* About Section */}
         <div className="mt-12">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">About Perpustakawan Portal</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">About Pustakawan Portal</h2>
           <p className="mt-4 text-gray-700 leading-relaxed">
             The Perpustakawan Dashboard at SMA Negeri 2 Plus Sipirok Library equips librarians with intuitive tools to manage student accounts, oversee book loans, and monitor overdue returns. Stay organized and ensure a smooth library experience for all users.
           </p>
