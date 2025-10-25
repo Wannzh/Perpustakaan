@@ -37,7 +37,7 @@ public class SiswaController {
             @RequestBody SiswaRequestDTO request,
             @RequestParam(required = false) Boolean status) {
 
-        SiswaResponseDTO updatedSiswa = siswaManagementService.updateSiswa(id, request);
+        SiswaResponseDTO updatedSiswa = siswaManagementService.updateSiswa(id, request, status);
 
         if (status != null) {
             siswaManagementService.updateStatusAktif(id, status);

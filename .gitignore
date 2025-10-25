@@ -31,3 +31,4 @@ build/
 
 # VSCode
 .vscode/
+.DS_Store

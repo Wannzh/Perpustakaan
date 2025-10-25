@@ -10,7 +10,7 @@ import com.api.perpustakaan.dto.siswa.SiswaResponseDTO;
 
 public interface SiswaManagementService {
     SiswaResponseDTO createSiswa(SiswaRequestDTO request);
-    SiswaResponseDTO updateSiswa(UUID id, SiswaRequestDTO request);
+    SiswaResponseDTO updateSiswa(UUID id, SiswaRequestDTO request, Boolean isActive);
     void updateStatusAktif(UUID siswaId, boolean isActive);
     void deleteSiswa(UUID id);
     List<SiswaResponseDTO> getAllSiswa();

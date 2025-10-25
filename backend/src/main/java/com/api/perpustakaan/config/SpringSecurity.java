@@ -70,7 +70,8 @@ public class SpringSecurity {
                                                 .requestMatchers(
                                                                 "/api/books/**",
                                                                 "/api/siswa/**",
-                                                                "/api/laporan/**")
+                                                                "/api/laporan/**",
+                                                                "/api/peminjaman/manual/all")
                                                 .hasAnyAuthority(RoleConstant.KEPALA.name(),
                                                                 RoleConstant.PUSTAKAWAN.name())
 
@@ -78,7 +79,7 @@ public class SpringSecurity {
                                                 .requestMatchers(
                                                                 "/api/peminjaman/manual/**",
                                                                 "/api/pengembalian/manual/**",
-                                                                "/pengembalian/konfirmasi/**",
+                                                                "/api/pengembalian/konfirmasi/**",
                                                                 "/api/test/**")
                                                 .hasAnyAuthority(RoleConstant.PUSTAKAWAN.name(),
                                                                 RoleConstant.SISWA.name())
@@ -99,12 +100,6 @@ public class SpringSecurity {
                                                                 "/api/admin/**",
                                                                 "/api/reports/**")
                                                 .hasAuthority(RoleConstant.KEPALA.name())
-
-                                                // PUSTAKAWAN only
-                                                .requestMatchers(
-                                                                "/api/peminjaman/manual/**",
-                                                                "/api/pengembalian/manual/**")
-                                                .hasAuthority(RoleConstant.PUSTAKAWAN.name())
 
                                                 // All authenticated
                                                 .anyRequest().authenticated())

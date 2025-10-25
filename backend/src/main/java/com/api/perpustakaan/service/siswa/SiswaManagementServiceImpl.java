@@ -57,7 +57,7 @@ public class SiswaManagementServiceImpl implements SiswaManagementService {
     }
 
     @Override
-    public SiswaResponseDTO updateSiswa(UUID id, SiswaRequestDTO request) {
+    public SiswaResponseDTO updateSiswa(UUID id, SiswaRequestDTO request, Boolean isActive) {
         User siswa = userRepository.findById(id).orElseThrow(() -> new RuntimeException("Siswa not found"));
         siswa.setName(request.getName());
         siswa.setUsername(request.getUsername());
@@ -67,8 +67,13 @@ public class SiswaManagementServiceImpl implements SiswaManagementService {
         if (request.getPassword() != null && !request.getPassword().isBlank()) {
             siswa.setPassword(passwordEncoder.encode(request.getPassword()));
         }
+        if (isActive != null) {
+            siswa.setActive(isActive);
+        }
+
         siswa.setUpdatedAt(LocalDateTime.now());
-        return mapToResponse(userRepository.save(siswa));
+        User updated = userRepository.save(siswa);
+        return mapToResponse(updated);
     }
 
     @Override
