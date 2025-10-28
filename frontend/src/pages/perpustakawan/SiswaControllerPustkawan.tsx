@@ -35,7 +35,6 @@ const SiswaControllerPustkawan: React.FC = () => {
     const [showNotification, setShowNotification] = useState<boolean>(false);
     const [notificationMessage, setNotificationMessage] = useState<string>("");
     const [isError, setIsError] = useState<boolean>(false);
-    const [deleteSiswaId, setDeleteSiswaId] = useState<number | null>(null);
     const [openInfoModal, setOpenInfoModal] = useState<Siswa | null>(null);
     const [newSiswa, setNewSiswa] = useState<SiswaRequestDTO>({
         name: "",
@@ -167,7 +166,7 @@ const SiswaControllerPustkawan: React.FC = () => {
         }
 
         try {
-            const response = await fetch(`http://localhost:8080/api/siswa/edit/${editSiswaId}`, {
+            const response = await fetch(`http://localhost:8080/api/siswa/edit/${editSiswaId}?status=${editSiswa.active}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
@@ -206,41 +205,6 @@ const SiswaControllerPustkawan: React.FC = () => {
         }
     };
 
-    const handleDeleteSiswa = async () => {
-        const token = Cookies.get("authToken");
-        if (!token || deleteSiswaId === null) {
-            setNotificationMessage("Token tidak ditemukan atau ID siswa tidak valid");
-            setIsError(true);
-            setShowNotification(true);
-            return;
-        }
-
-        try {
-            const response = await fetch(`http://localhost:8080/api/siswa/hapus/${deleteSiswaId}`, {
-                method: "DELETE",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-
-            if (!response.ok) {
-                throw new Error(`Gagal menghapus siswa - Status ${response.status}`);
-            }
-
-            await response.text();
-            setSiswaList((prev) => prev.filter((siswa) => siswa.id !== deleteSiswaId));
-            setShowDeleteModal(false);
-            setDeleteSiswaId(null);
-            setNotificationMessage("Siswa berhasil dihapus");
-            setIsError(false);
-            setShowNotification(true);
-        } catch (err) {
-            setNotificationMessage(err instanceof Error ? err.message : "Terjadi kesalahan saat menghapus siswa");
-            setIsError(true);
-            setShowNotification(true);
-        }
-    };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -266,11 +230,6 @@ const SiswaControllerPustkawan: React.FC = () => {
         setEditSiswaId(siswa.id);
         setShowEditForm(true);
         setShowAddForm(false);
-    };
-
-    const openDeleteModal = (id: number) => {
-        setDeleteSiswaId(id);
-        setShowDeleteModal(true);
     };
 
     const handleSearch = async () => {
@@ -625,12 +584,6 @@ const SiswaControllerPustkawan: React.FC = () => {
                         <p className="mb-6 text-gray-600">Apakah Anda yakin ingin menghapus siswa ini?</p>
                         <div className="flex gap-3 justify-end">
                             <button
-                                onClick={handleDeleteSiswa}
-                                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
-                            >
-                                <Trash2 className="w-4 h-4" /> Hapus
-                            </button>
-                            <button
                                 onClick={() => setShowDeleteModal(false)}
                                 className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md transition-transform transform hover:scale-105"
                             >
@@ -799,12 +752,6 @@ const SiswaControllerPustkawan: React.FC = () => {
                                                     onClick={() => openEditForm(siswa)}
                                                 >
                                                     <Edit className="w-4 h-4" />
-                                                </button>
-                                                <button
-                                                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg flex items-center gap-1 shadow-sm transition-transform transform hover:scale-105 cursor-pointer"
-                                                    onClick={() => openDeleteModal(siswa.id)}
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
                                                 </button>
                                                 <button
                                                     className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg flex items-center gap-1 shadow-sm transition-transform transform hover:scale-105 cursor-pointer"

@@ -14,6 +14,26 @@ interface SiswaTerlambatDTO {
     totalTerlambat: number;
 }
 
+interface PeminjamanDTO {
+    id: number;
+    idSiswa: string;
+    namaSiswa: string;
+    judulBuku: string;
+    tanggalPinjam: string;
+    tanggalJatuhTempo: string;
+    tanggalKembali: string | null;
+    status: string;
+    statusPengembalian: string | null;
+    denda: number | null;
+    rating: number | null;
+}
+
+interface GroupedPeminjamanDTO {
+    idSiswa: string;
+    namaSiswa: string;
+    totalDipinjam: number;
+}
+
 const API_BASE_URL = "http://localhost:8080";
 
 const LaporanAdmin: React.FC = () => {
@@ -25,6 +45,8 @@ const LaporanAdmin: React.FC = () => {
     );
     const [bukuTerpopuler, setBukuTerpopuler] = useState<BukuTerpopulerDTO[]>([]);
     const [siswaTerlambat, setSiswaTerlambat] = useState<SiswaTerlambatDTO[]>([]);
+    const [, setPeminjaman] = useState<PeminjamanDTO[]>([]);
+    const [groupedPeminjaman, setGroupedPeminjaman] = useState<GroupedPeminjamanDTO[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [downloadLoading, setDownloadLoading] = useState<boolean>(false);
     const [notification, setNotification] = useState<{
@@ -43,7 +65,7 @@ const LaporanAdmin: React.FC = () => {
         }
     }, [notification.show]);
 
-    const validateDates = (): boolean => {
+    const validateInputs = (): boolean => {
         const newErrors: { startDate?: string; endDate?: string } = {};
         if (!startDate) {
             newErrors.startDate = "Tanggal mulai wajib diisi";
@@ -63,10 +85,10 @@ const LaporanAdmin: React.FC = () => {
     };
 
     const fetchReports = async () => {
-        if (!validateDates()) {
+        if (!validateInputs()) {
             setNotification({
                 show: true,
-                message: "Gagal memuat laporan: Periksa rentang tanggal.",
+                message: "Gagal memuat laporan: Periksa input yang diisi.",
                 isSuccess: false,
             });
             return;
@@ -122,6 +144,42 @@ const LaporanAdmin: React.FC = () => {
             const siswaData = await siswaResponse.json();
             setSiswaTerlambat(siswaData);
 
+            // Fetch peminjaman
+            const peminjamanResponse = await fetch(
+                `${API_BASE_URL}/api/peminjaman/manual/all?startDate=${startDate}&endDate=${endDate}&page=0&size=1000&sortBy=tanggalPinjam&direction=desc`,
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+            if (!peminjamanResponse.ok) {
+                const errorData = await peminjamanResponse.json().catch(() => ({}));
+                throw new Error(
+                    errorData.message || `Gagal mengambil data peminjaman. Status: ${peminjamanResponse.status}`
+                );
+            }
+            const peminjamanData = await peminjamanResponse.json();
+            const peminjamanList = peminjamanData.content || [];
+            setPeminjaman(peminjamanList);
+
+            // Group by idSiswa and count total borrowings
+            const grouped = peminjamanList.reduce((acc: GroupedPeminjamanDTO[], curr: PeminjamanDTO) => {
+                const existing = acc.find(g => g.idSiswa === curr.idSiswa);
+                if (existing) {
+                    existing.totalDipinjam += 1;
+                } else {
+                    acc.push({
+                        idSiswa: curr.idSiswa,
+                        namaSiswa: curr.namaSiswa,
+                        totalDipinjam: 1
+                    });
+                }
+                return acc;
+            }, []);
+            setGroupedPeminjaman(grouped);
+
             setNotification({
                 show: true,
                 message: "Laporan berhasil dimuat.",
@@ -139,7 +197,7 @@ const LaporanAdmin: React.FC = () => {
     };
 
     const handleDownload = async (type: "pdf" | "excel") => {
-        if (!validateDates()) {
+        if (!validateInputs()) {
             setNotification({
                 show: true,
                 message: "Gagal mengunduh laporan: Periksa rentang tanggal.",
@@ -331,7 +389,7 @@ const LaporanAdmin: React.FC = () => {
                 )}
             </div>
 
-            <div className="bg-white rounded-xl shadow-2xl overflow-hidden">
+            <div className="bg-white rounded-xl shadow-2xl mb-8 overflow-hidden">
                 <div className="flex justify-between items-center p-6">
                     <h2 className="text-xl font-semibold text-indigo-700">Siswa Sering Terlambat</h2>
                     <button
@@ -373,6 +431,48 @@ const LaporanAdmin: React.FC = () => {
                                         <td className="px-6 py-4 text-sm text-gray-900 font-medium">{index + 1}</td>
                                         <td className="px-6 py-4 text-sm text-gray-900 font-medium">{siswa.namaSiswa}</td>
                                         <td className="px-6 py-4 text-sm text-gray-900 font-medium">{siswa.totalTerlambat}</td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                )}
+            </div>
+
+            <div className="bg-white rounded-xl shadow-2xl overflow-hidden">
+                <div className="flex justify-between items-center p-6">
+                    <h2 className="text-xl font-semibold text-indigo-700">Riwayat Peminjaman Siswa</h2>
+                </div>
+                {loading ? (
+                    <div className="text-center text-gray-500 py-8">
+                        <Loader2 className="animate-spin inline-block w-8 h-8 text-indigo-600" />
+                        <p className="mt-2 font-medium">Memuat data laporan...</p>
+                    </div>
+                ) : (
+                    <table className="min-w-full table-auto">
+                        <thead className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white">
+                            <tr>
+                                <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">No</th>
+                                <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Nama Siswa</th>
+                                <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Total Buku Di Pinjam</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {groupedPeminjaman.length === 0 ? (
+                                <tr>
+                                    <td colSpan={3} className="px-6 py-4 text-center text-sm text-gray-500">
+                                        Tidak ada data peminjaman ditemukan
+                                    </td>
+                                </tr>
+                            ) : (
+                                groupedPeminjaman.map((item, index) => (
+                                    <tr
+                                        key={item.idSiswa}
+                                        className={`${index % 2 === 0 ? "bg-gray-50" : "bg-white"} hover:bg-indigo-50 transition-all duration-200`}
+                                    >
+                                        <td className="px-6 py-4 text-sm text-gray-900 font-medium">{index + 1}</td>
+                                        <td className="px-6 py-4 text-sm text-gray-900 font-medium">{item.namaSiswa}</td>
+                                        <td className="px-6 py-4 text-sm text-gray-900 font-medium">{item.totalDipinjam}</td>
                                     </tr>
                                 ))
                             )}

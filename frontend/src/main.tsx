@@ -28,6 +28,7 @@ import LoansBooksPustakawan from "./pages/perpustakawan/LoansBooksPustakawan";
 import BooksPengembalian from "./pages/perpustakawan/BooksPengembalian";
 import LaporanPustakawan from "./pages/perpustakawan/LaporanPustakawan";
 import CartPageSiswa from "./pages/siswa/CartPageSiswa";
+import LaporanAdmin from "./pages/admin/LaporanAdmin";
 
 const router = createBrowserRouter([
   {
@@ -62,7 +63,7 @@ const router = createBrowserRouter([
           },
           {
             path: "laporan-management",
-            element: <LaporanPustakawan />
+            element: <LaporanAdmin />
           },
         ],
       },

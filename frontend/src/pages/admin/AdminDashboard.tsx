@@ -5,6 +5,7 @@ import { Library } from 'lucide-react';
 
 interface Siswa {
   id: number;
+  active: boolean;
   name: string;
   username: string;
   email: string;
@@ -34,6 +35,9 @@ const AdminDashboard: React.FC = () => {
   const [siswaData, setSiswaData] = useState<Siswa[]>([]);
   const [pustakawanData, setPustakawanData] = useState<Pustakawan[]>([]);
   const [bookList, setBookList] = useState<Books[]>([]);
+  const [totSiswaPeminjam, setTotSiswaPeminjam] = useState(0);
+  const [studentActive, setStudentActive] = useState(0);
+  console.log(studentActive);
 
   useEffect(() => {
     fetchDataPustakawan();
@@ -59,11 +63,22 @@ const AdminDashboard: React.FC = () => {
         },
       });
 
+      const response2 = await fetch("http://localhost:8080/api/peminjaman/manual/all", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
       if (!response.ok) {
         throw new Error(`Gagal mengambil data pustakawan - Status ${response.status}`);
       }
 
       const data: Pustakawan[] = await response.json();
+      const result = await response2.json();
+
+      setTotSiswaPeminjam(result.totalSiswaAktifMeminjam || 0);
       setPustakawanData(data);
     } catch (err) {
       console.error("Error:", err);
@@ -91,6 +106,7 @@ const AdminDashboard: React.FC = () => {
       }
 
       const data: Siswa[] = await response.json();
+      setStudentActive(data.filter(siswa => siswa.active).length);
       setSiswaData(data);
     } catch (err) {
       console.error("Error:", err);
@@ -124,29 +140,45 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
+
   const features = [
     {
       name: 'Total Students',
       slug: `${siswaData.length} Students`,
-      description: 'Manage student accounts and access details.',
+      description: 'View and manage all registered student accounts.',
       icon: UsersIcon,
       color: 'bg-blue-100 text-blue-600',
     },
     {
       name: 'Total Librarians',
       slug: `${pustakawanData.length} Librarians`,
-      description: 'Oversee librarian accounts and permissions.',
+      description: 'Manage librarian profiles and access permissions.',
       icon: Library,
-      color: 'bg-gray-100 text-gray-600',
+      color: 'bg-blue-100 text-blue-600',
     },
     {
       name: 'Total Books',
       slug: `${bookList.length} Books`,
-      description: 'Track and update the library catalog.',
+      description: 'Keep track of and update the entire book collection.',
       icon: BookOpenIcon,
       color: 'bg-indigo-100 text-indigo-600',
     },
+    {
+      name: 'Students Active Borrowers',
+      slug: `${totSiswaPeminjam} Active Borrowers`,
+      description: 'Monitor students who currently have borrowed books.',
+      icon: UsersIcon,
+      color: 'bg-red-100 text-indigo-600',
+    },
+    {
+      name: 'Active Students',
+      slug: `${studentActive} Active Students`,
+      description: 'Track and manage students currently active in the system.',
+      icon: UsersIcon,
+      color: 'bg-red-100 text-indigo-600',
+    }
   ];
+
 
   return (
     <div className="min-h-screen bg-gray-50 w-full font-sans">

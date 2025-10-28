@@ -61,7 +61,8 @@ public class SpringSecurity {
                                                 // KEPALA + PUSTAKAWAN + SISWA
                                                 .requestMatchers(
                                                                 "/api/books/get-all",
-                                                                "/api/laporan/buku-terpopuler")
+                                                                "/api/laporan/buku-terpopuler",
+                                                                "/api/peminjaman/manual/all")
                                                 .hasAnyAuthority(RoleConstant.KEPALA.name(),
                                                                 RoleConstant.PUSTAKAWAN.name(),
                                                                 RoleConstant.SISWA.name())
@@ -70,8 +71,7 @@ public class SpringSecurity {
                                                 .requestMatchers(
                                                                 "/api/books/**",
                                                                 "/api/siswa/**",
-                                                                "/api/laporan/**",
-                                                                "/api/peminjaman/manual/all")
+                                                                "/api/laporan/**")
                                                 .hasAnyAuthority(RoleConstant.KEPALA.name(),
                                                                 RoleConstant.PUSTAKAWAN.name())
 
@@ -81,8 +81,7 @@ public class SpringSecurity {
                                                                 "/api/pengembalian/manual/**",
                                                                 "/api/pengembalian/konfirmasi/**",
                                                                 "/api/test/**")
-                                                .hasAnyAuthority(RoleConstant.PUSTAKAWAN.name(),
-                                                                RoleConstant.SISWA.name())
+                                                .hasAnyAuthority(RoleConstant.PUSTAKAWAN.name())
 
                                                 // SISWA only
                                                 .requestMatchers(
